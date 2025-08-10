@@ -139,6 +139,13 @@
         .ch-badge{ padding:6px 10px; border-radius:999px; font-weight:700; font-size:.8rem; }
         .ch-progress{ height:16px; background:#334155; border-radius:999px; overflow:hidden; }
         .ch-progress>div{ height:100%; background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444); width:0%; transition:width .6s ease; }
+
+        /* Datos Reales (vanilla) */
+        .rd-section{ background:#0b1220; color:#eef2ff; padding:24px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); margin:30px 0; }
+        .rd-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:14px; }
+        .rd-card{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:16px; }
+        .rd-badge{ padding:4px 8px; border-radius:999px; font-size:.8rem; font-weight:700; }
+        .rd-pill{ border-radius:999px; padding:6px 10px; font-size:.85rem; display:inline-flex; align-items:center; gap:6px; }
     </style>
 </head>
 <body>
@@ -404,6 +411,31 @@
                 <div class="ltc-card"><div id="ltc-d-avg">$0</div><div class="muted">Promedio por Viaje</div></div>
                 <div class="ltc-card"><div id="ltc-d-hours">0.0h</div><div class="muted">Horas Trabajadas</div></div>
             </div>
+        </div>
+
+        <!-- DATOS REALES (versión web simple) -->
+        <div class="rd-section" id="realdata">
+            <h2 class="section-title">🛰️ Datos Reales</h2>
+            <div class="rd-card" style="margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span>Estado</span>
+                        <span id="rd-online" class="rd-pill" style="background:rgba(34,197,94,.2); color:#22c55e;">Online</span>
+                    </div>
+                    <button id="rd-refresh" class="ltc-btn ltc-btn-green">Actualizar</button>
+                </div>
+                <div style="margin-top:10px;">
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span>Ubicación:</span>
+                        <span id="rd-location" class="muted">Detectando...</span>
+                        <button id="rd-retry" class="ltc-btn ltc-btn-yellow">Reintentar</button>
+                    </div>
+                    <div id="rd-location-geo" class="muted" style="margin-top:6px;">—</div>
+                </div>
+            </div>
+            <div class="rd-grid" id="rd-platforms"></div>
+            <div class="rd-card" id="rd-recs" style="margin-top:12px;"></div>
+            <div class="rd-card" id="rd-hotzones" style="margin-top:12px;"></div>
         </div>
 
         <!-- MODO CHALLENGE (versión web simple) -->
@@ -969,7 +1001,7 @@
         function actualizarEstadisticasZonas(){ const hist=JSON.parse(localStorage.getItem('historialZonas')||'[]'); if(hist.length===0) return; const frecu={}; let total=0; hist.forEach(r=>{ frecu[r.zona]=(frecu[r.zona]||0)+1; total+=r.ganancia; }); const fav=Object.entries(frecu).sort((a,b)=>b[1]-a[1])[0]; const prom=Math.round(total/hist.length); if(hist.length%10===0){ mostrarNotificacionEstadisticas(fav[0], prom, hist.length); } }
         function mostrarNotificacionEstadisticas(zonaFav, ganProm, total){ const n=document.createElement('div'); n.style.cssText='position:fixed; top:20px; right:20px; background:linear-gradient(45deg,#4CAF50,#45a049); color:white; padding:15px 20px; border-radius:10px; z-index:1001; box-shadow:0 4px 15px rgba(0,0,0,.3); max-width:300px;'; n.innerHTML=`<strong>📊 Estadísticas Actualizadas</strong><br>🏆 Zona favorita: ${zonaFav}<br>💰 Ganancia promedio: $${ganProm}/hora<br>📍 Zonas visitadas: ${total}`; document.body.appendChild(n); setTimeout(()=>n.remove(),5000); }
         function agregarEstilosCiudad(){ const style=document.createElement('style'); style.textContent=`.ciudad-btn{background:white;color:#667eea;border:2px solid transparent;padding:12px 20px;border-radius:25px;font-weight:600;cursor:pointer;transition:all .3s ease;font-size:.9rem}.ciudad-btn:hover{background:#667eea;color:white;transform:translateY(-2px);box-shadow:0 5px 15px rgba(102,126,234,.3)}.hidden{display:none!important}.zona-premium-item:hover{transform:translateX(5px); box-shadow:0 3px 10px rgba(0,0,0,.1)}.zona-comparacion:hover{background:#f0f8ff!important; cursor:pointer}`; document.head.appendChild(style);} 
-        document.addEventListener('DOMContentLoaded', ()=>{ agregarEstilosCiudad(); const btn=document.getElementById('detectar-ubicacion'); if(btn) btn.addEventListener('click', detectarUbicacion); initLiveTripCounter(); initChallengeMode(); });
+        document.addEventListener('DOMContentLoaded', ()=>{ agregarEstilosCiudad(); const btn=document.getElementById('detectar-ubicacion'); if(btn) btn.addEventListener('click', detectarUbicacion); initLiveTripCounter(); initChallengeMode(); initRealData(); });
 
         // ==== Live Trip Counter (vanilla) ====
         function initLiveTripCounter(){
@@ -1131,6 +1163,105 @@
         window.calcular = calcular;
         window.exportarPDF = exportarPDF;
         window.compartir = compartir;
+
+        // ==== Datos Reales (vanilla) ====
+        function initRealData(){
+            const $ = (id)=>document.getElementById(id);
+            const state = {
+                isOnline: navigator.onLine,
+                location: { province:null, city:null, coordinates:null, loading:true, error:null },
+                platforms: {
+                    uber:{ active:false, demand:0, surge:1, avgEarnings:0, estimatedTrips:0, zones:[], lastUpdate:null },
+                    didi:{ active:false, demand:0, surge:1, avgEarnings:0, estimatedTrips:0, zones:[], lastUpdate:null },
+                    pedidosya:{ active:false, demand:0, surge:1, avgEarnings:0, estimatedTrips:0, zones:[], lastUpdate:null },
+                    rappi:{ active:false, demand:0, surge:1, avgEarnings:0, estimatedTrips:0, zones:[], lastUpdate:null }
+                },
+                metrics: { bestPlatform:null, hotZones:[], weatherImpact:1, trafficLevel:'normal', recommendations:[] }
+            };
+
+            const platformConfig = {
+                uber:{ name:'Uber', color:'#000000', icon:'🚗' },
+                didi:{ name:'DiDi', color:'#FF6B35', icon:'🚘' },
+                pedidosya:{ name:'PedidosYa', color:'#E53E3E', icon:'🍕' },
+                rappi:{ name:'Rappi', color:'#FF6B35', icon:'🛵' }
+            };
+
+            function fmtMoney(n){ return new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:0}).format(n).replace('ARS','$'); }
+            function fmtLast(ts){ if(!ts) return 'Nunca'; const d=Date.now()-new Date(ts).getTime(); const m=Math.floor(d/60000); return m<1?'Ahora':`Hace ${m} min`; }
+
+            // UI
+            function renderOnline(){ const pill=$('rd-online'); if(!pill) return; pill.textContent= state.isOnline? 'Online':'Offline'; pill.style.background = state.isOnline? 'rgba(34,197,94,.2)':'rgba(239,68,68,.2)'; pill.style.color = state.isOnline? '#22c55e':'#ef4444'; }
+            function renderLocation(){ const loc=$('rd-location'); const geo=$('rd-location-geo'); if(!loc||!geo) return; if(state.location.loading){ loc.textContent='Detectando...'; geo.textContent='—'; return; } if(state.location.error){ loc.textContent=state.location.error; geo.textContent='—'; return; } loc.textContent=`${state.location.city}, ${state.location.province}`; const c=state.location.coordinates; geo.textContent=`(${c.lat.toFixed(4)}, ${c.lng.toFixed(4)})`; }
+            function renderPlatforms(){ const root=$('rd-platforms'); if(!root) return; root.innerHTML = Object.keys(platformConfig).map(key=>{ const d=state.platforms[key]; const active=d.active && state.isOnline; return `
+                <div class="rd-card" style="border:${active?'1px solid rgba(34,197,94,.4)':'1px solid rgba(255,255,255,.15)'};">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span style="font-size:24px;">${platformConfig[key].icon}</span>
+                            <div>
+                                <div style="font-weight:800;">${platformConfig[key].name}</div>
+                                <div class="muted">${active?'Activo':'Inactivo'}</div>
+                            </div>
+                        </div>
+                        <div style="width:10px;height:10px;border-radius:50%; background:${active?'#22c55e':'#6b7280'};"></div>
+                    </div>
+                    ${active? `
+                    <div class="muted" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Demanda</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <div style="width:90px; height:8px; background:#374151; border-radius:999px; overflow:hidden;">
+                                <div style="width:${d.demand}%; height:8px; background:linear-gradient(90deg,#ef4444,#22c55e);"></div>
+                            </div>
+                            <span style="font-weight:800;">${d.demand}%</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:6px;">
+                        <span class="muted">Multiplicador</span><span style="font-weight:800; color:${d.surge>1.5?'#f87171':d.surge>1.2?'#fbbf24':'#22c55e'}">${d.surge}x</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:6px;">
+                        <span class="muted">Ganancia promedio</span><span style="font-weight:800; color:#22c55e;">${fmtMoney(d.avgEarnings)}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:6px;">
+                        <span class="muted">Viajes estimados</span><span style="font-weight:800;">${d.estimatedTrips}/día</span>
+                    </div>
+                    <div class="muted" style="margin-top:6px;">Actualizado: ${fmtLast(d.lastUpdate)}</div>
+                    `:
+                    `<div style="text-align:center; padding:16px; color:#9ca3af;">Sin datos disponibles</div>`}
+                </div>`; }).join(''); }
+            function renderRecommendations(){ const root=$('rd-recs'); if(!root) return; const recs=state.metrics.recommendations||[]; if(!recs.length){ root.innerHTML=''; return; } root.innerHTML = `<h3 style="margin-top:0;">Recomendaciones en tiempo real</h3>` + recs.map(r=>`<div style="margin-top:8px; padding:10px; border-left:4px solid ${r.priority==='high'?'#ef4444':r.priority==='medium'?'#f59e0b':'#3b82f6'}; background:rgba(255,255,255,.06); border-radius:8px;"> <div style="font-weight:800; margin-bottom:4px;">${r.message}</div><div class="muted">${r.detail||''}</div></div>`).join(''); }
+            function renderHotZones(){ const root=$('rd-hotzones'); if(!root) return; const zones=state.metrics.hotZones||[]; if(!zones.length){ root.innerHTML=''; return; } root.innerHTML = `<h3 style="margin-top:0;">Zonas calientes cercanas</h3>` + `<div class="rd-grid">` + zones.map((z,i)=>`<div class="rd-card"><div style=\"display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;\"><div style=\"font-weight:800;\">${z.name}</div><span class=\"rd-badge\" style=\"background:rgba(59,130,246,.25);\">#${i+1}</span></div><div class=\"muted\" style=\"display:flex; justify-content:space-between;\"><span>Demanda</span><span>${z.demandLevel}/5</span></div><div class=\"muted\" style=\"display:flex; justify-content:space-between;\"><span>Espera</span><span>${z.avgWaitTime} min</span></div><div class=\"muted\" style=\"display:flex; justify-content:space-between;\"><span>Surge</span><span>${z.surgeMultiplier.toFixed(1)}x</span></div><div class=\"muted\" style=\"margin-top:6px;\">${platformConfig[z.platform]?.icon||'📦'} ${platformConfig[z.platform]?.name||''}</div></div>`).join('') + `</div>`; }
+
+            // Geo
+            async function getCurrentLocation(){ state.location.loading=true; renderLocation(); if(!navigator.geolocation){ state.location={...state.location,loading:false,error:'Geolocalización no soportada'}; renderLocation(); return; } const options={ enableHighAccuracy:true, timeout:10000, maximumAge:60000 }; navigator.geolocation.getCurrentPosition(async (pos)=>{ const { latitude, longitude } = pos.coords; try{ const resp=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=es`); if(resp.ok){ const data=await resp.json(); state.location={ province:data.principalSubdivision||'Provincia no detectada', city:data.city||data.locality||'Ciudad no detectada', coordinates:{lat:latitude,lng:longitude}, loading:false, error:null }; } else { throw new Error('Reverse geocode error'); } }catch(e){ state.location={...state.location, loading:false, error:'Error al determinar la ubicación exacta'}; } renderLocation(); if(state.location.coordinates) updateAllPlatforms(); }, (err)=>{ const map={1:'Permiso de ubicación denegado',2:'Ubicación no disponible',3:'Tiempo de espera agotado'}; state.location={...state.location, loading:false, error: map[err.code]||'Error al obtener ubicación'}; renderLocation(); }, options); }
+
+            // Mock data
+            function generateHotZones(coords, platform){ if(!coords) return []; const out=[]; for(let i=0;i<5;i++){ const ol=(Math.random()-.5)*0.1, og=(Math.random()-.5)*0.1; out.push({ id:`${platform}_zone_${i}`, name:getZoneName(coords.lat+ol, coords.lng+og), coordinates:{ lat:coords.lat+ol, lng:coords.lng+og }, demandLevel: Math.floor(Math.random()*5)+1, avgWaitTime: Math.floor(Math.random()*15)+2, surgeMultiplier: 1 + (Math.random()*2), platform }); } return out; }
+            function getZoneName(){ const names=['Centro','Puerto Madero','Palermo','Belgrano','Villa Crespo','San Telmo','La Boca','Recoleta','Barrio Norte','Caballito','Flores','Once','Abasto','Villa Urquiza']; return names[Math.floor(Math.random()*names.length)]; }
+            function getWeatherImpact(){ return 1 + (Math.random()*0.4 - 0.2); }
+            function getTrafficLevel(){ const levels=['bajo','normal','alto','muy_alto']; return levels[Math.floor(Math.random()*levels.length)]; }
+
+            async function fetchPlatformData(platform, coords){ const base={ uber:{demand:1.2,earnings:800}, didi:{demand:1.0,earnings:650}, pedidosya:{demand:1.1,earnings:720}, rappi:{demand:1.3,earnings:900} };
+                const time=new Date(); const h=time.getHours(); const w=[0,6].includes(time.getDay()); const peak=(h>=7&&h<=9)||(h>=12&&h<=14)||(h>=19&&h<=22); let df=1; if(peak) df+=0.4; if(w) df+=0.2; if(h>=22||h<=6) df+=0.6; const mult=base[platform]; const surge= Number((1 + (Math.random()*df*0.8)).toFixed(1)); return new Promise(res=> setTimeout(()=> res({ active: Math.random()>0.3, demand: Math.min(100, Math.floor(50 + (Math.random()*50*df))), surge, avgEarnings: Math.floor(mult.earnings * surge * df), estimatedTrips: Math.floor(8 + (Math.random()*12*df)), zones: generateHotZones(coords, platform), lastUpdate:new Date().toISOString() }), Math.random()*1200 + 400)); }
+
+            async function updateAllPlatforms(){ if(!state.location.coordinates) return; const keys=Object.keys(platformConfig); const updates={}; for(const k of keys){ // secuencial para simplicidad
+                    // eslint-disable-next-line no-await-in-loop
+                    const data = await fetchPlatformData(k, state.location.coordinates); if(data) updates[k]=data; }
+                state.platforms = { ...state.platforms, ...updates }; renderPlatforms(); calculateMetrics(updates); renderRecommendations(); renderHotZones(); }
+
+            function calculateMetrics(data){ const active = Object.entries(data).filter(([,v])=>v.active); if(!active.length) return; const best = active.reduce((b,[k,v])=>{ const s=v.avgEarnings * v.surge * (v.demand/100); const bs=b.info.avgEarnings * b.info.surge * (b.info.demand/100); return s>bs? { platform:k, info:v } : b; }); const zones = active.flatMap(([p,info])=> info.zones.map(z=>({ ...z, platform:p }))); const hot = zones.sort((a,b)=> b.demandLevel-a.demandLevel).slice(0,5); const recs = generateRecommendations(active); state.metrics={ bestPlatform: best.platform, hotZones: hot, weatherImpact: getWeatherImpact(), trafficLevel: getTrafficLevel(), recommendations: recs }; }
+
+            function generateRecommendations(active){ const recs=[]; const bestEarn = Math.max(...active.map(([,i])=> i.avgEarnings)); const best = active.find(([,i])=> i.avgEarnings===bestEarn); if(best){ const pf=best[0]; recs.push({ type:'platform', priority:'high', message:`Cambiar a ${platformConfig[pf].name}`, detail:`Ganancias promedio: ${fmtMoney(bestEarn)}`, platform: pf }); }
+                const h=new Date().getHours(); if(h>=11&&h<=14){ recs.push({ type:'timing', priority:'medium', message:'Hora pico de almuerzo', detail:'Mayor demanda de delivery hasta las 15:00' }); }
+                recs.push({ type:'weather', priority:'low', message:'Condiciones normales', detail:'Sin impacto significativo por clima' }); return recs; }
+
+            // events
+            $('rd-refresh')?.addEventListener('click', updateAllPlatforms);
+            $('rd-retry')?.addEventListener('click', getCurrentLocation);
+            window.addEventListener('online', ()=>{ state.isOnline=true; renderOnline(); });
+            window.addEventListener('offline', ()=>{ state.isOnline=false; renderOnline(); });
+
+            // init
+            renderOnline(); renderLocation(); renderPlatforms(); getCurrentLocation(); setInterval(()=>{ if(state.location.coordinates && state.isOnline){ updateAllPlatforms(); } }, 120000);
+        }
     </script>
 </body>
 </html>
