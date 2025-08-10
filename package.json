@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "install-db": "node setup-database.js"
+    "install-db": "node setup-database.js",
+    "vercel-build": "echo skipping build"
   },
   "keywords": [],
   "author": "",

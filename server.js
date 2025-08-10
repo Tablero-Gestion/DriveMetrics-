@@ -5,7 +5,17 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { OAuth2Client } = require('google-auth-library');
-require('dotenv').config();
+// Cargar variables de entorno priorizando env.local
+const fs = require('fs');
+const path = require('path');
+const localEnvPath = path.join(__dirname, 'env.local');
+if (fs.existsSync(localEnvPath)) {
+  require('dotenv').config({ path: localEnvPath });
+  console.log('[dotenv] cargado desde env.local');
+} else {
+  require('dotenv').config();
+  console.log('[dotenv] cargado desde .env');
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,7 +31,6 @@ app.use(cors({
 }));
 app.use(express.json());
 // Servir estáticos desde la carpeta public
-const path = require('path');
 const publicDir = path.join(__dirname, 'public');
 app.use(express.static(publicDir));
 app.get('/', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
@@ -29,8 +38,8 @@ app.get('/', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
 // Configuración de la base de datos MySQL
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
+    user: process.env.DB_USER || 'LuxioT',
+    password: process.env.DB_PASSWORD || 'Cerveza2025',
     database: process.env.DB_NAME || 'drivemetrics',
     waitForConnections: true,
     connectionLimit: 10,
@@ -324,6 +333,13 @@ process.on('SIGINT', async () => {
     process.exit(0);
 });
 
-startServer();
+// En Vercel no debemos levantar el listener; solo exportar el app y preparar DB
+if (process.env.VERCEL) {
+    initDatabase().catch((err) => console.error('❌ DB init (Vercel) error:', err));
+} else {
+    startServer();
+}
+
+module.exports = app;
 
 
