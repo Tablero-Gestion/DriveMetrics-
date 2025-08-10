@@ -108,6 +108,37 @@
         .horario-zona-titulo { font-weight:600; color:#333; margin-bottom:5px; }
         .horario-zona-detalle { font-size:.9rem; color:#666; }
         .alerta-zona { background: linear-gradient(45deg, #ff6b6b, #ee5a6f); color:#fff; padding:15px; border-radius:8px; margin-top:15px; text-align:center; }
+
+        /* Alertas de Horarios Premium */
+        .premium-alerts-section { background:#fff; padding:30px; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,.1); margin:30px 0; }
+        .premium-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; }
+        .card { background:#fff; border:1px solid #eaeaea; border-radius:12px; padding:16px; box-shadow:0 6px 16px rgba(0,0,0,.06); }
+        .badge { padding:4px 8px; border-radius:8px; font-size:.8rem; font-weight:600; }
+        .badge-green { background:#e6f8ee; color:#16794d; }
+        .badge-orange { background:#fff2e0; color:#b65a00; }
+        .badge-gray { background:#f1f3f5; color:#555; }
+        .muted { color:#6b7280; font-size:.9rem; }
+
+        /* Live Trip Counter (vanilla) */
+        .ltc-section { background:#0b1220; color:#eef2ff; padding:24px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); margin:30px 0; }
+        .ltc-controls { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:16px 0; }
+        .ltc-btn { border:none; border-radius:12px; padding:12px 18px; font-weight:600; cursor:pointer; color:#fff; transition:transform .1s ease; }
+        .ltc-btn:hover { transform: translateY(-1px); }
+        .ltc-btn-green{ background:#22c55e; } .ltc-btn-yellow{ background:#f59e0b; } .ltc-btn-red{ background:#ef4444; }
+        .ltc-platforms{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:10px; }
+        .ltc-chip{ padding:8px 12px; border-radius:10px; background:rgba(255,255,255,.08); cursor:pointer; }
+        .ltc-chip.active{ box-shadow:0 0 0 2px rgba(255,255,255,.25) inset; transform: translateY(-1px); }
+        .ltc-timer{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; font-size:48px; text-align:center; margin:10px 0; background: linear-gradient(90deg,#60a5fa,#a78bfa); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .ltc-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px; }
+        .ltc-card{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:14px; padding:12px; text-align:center; }
+
+        /* Modo Challenge (vanilla) */
+        .challenge-section{ background:#0f172a; color:#eef2ff; padding:24px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); margin:30px 0; }
+        .ch-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:14px; }
+        .ch-card{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:16px; }
+        .ch-badge{ padding:6px 10px; border-radius:999px; font-weight:700; font-size:.8rem; }
+        .ch-progress{ height:16px; background:#334155; border-radius:999px; overflow:hidden; }
+        .ch-progress>div{ height:100%; background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444); width:0%; transition:width .6s ease; }
     </style>
 </head>
 <body>
@@ -309,6 +340,114 @@
                     <h3>⏰ Mejores Horarios por Zona</h3>
                     <div id="horarios-optimizados"></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- ALERTAS DE HORARIOS PREMIUM (versión web simple) -->
+        <div class="premium-alerts-section">
+            <h2 class="section-title">🔔 Alertas de Horarios Premium</h2>
+            <div id="premium-alerts-root">
+                <div class="card">
+                    <div class="muted">Estado actual</div>
+                    <div id="premium-estado-actual" style="margin-top:8px;">Sin horarios premium activos</div>
+                </div>
+                <div class="card" style="margin-top:12px;">
+                    <div class="muted">Próximo horario premium</div>
+                    <div id="premium-proximo" style="margin-top:8px;">Calculando...</div>
+                </div>
+                <div class="card" style="margin-top:12px;">
+                    <div class="muted">Historial de alertas</div>
+                    <div id="premium-historial" style="margin-top:8px; font-size:.9rem; color:#374151;">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTADOR DE VIAJES EN VIVO (versión web simple) -->
+        <div class="ltc-section" id="ltc">
+            <h2 class="section-title">🚦 Contador de Viajes EN VIVO</h2>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,.08); padding:12px 16px; border-radius:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span id="ltc-indicator" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6b7280;"></span>
+                    <span id="ltc-status" class="muted">INACTIVO</span>
+                </div>
+                <div class="ltc-controls">
+                    <button class="ltc-btn ltc-btn-green" id="ltc-start">INICIAR SESIÓN</button>
+                    <button class="ltc-btn ltc-btn-yellow" id="ltc-pause">PAUSAR</button>
+                    <button class="ltc-btn ltc-btn-red" id="ltc-stop">FINALIZAR</button>
+                </div>
+            </div>
+            <div class="ltc-platforms" id="ltc-platforms"></div>
+            <div class="ltc-timer" id="ltc-worktime">00:00:00</div>
+
+            <div class="ltc-card" style="margin:10px 0;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div>
+                        <div style="font-weight:700;">Viaje Actual</div>
+                        <div id="ltc-trip-status" class="muted">Esperando</div>
+                    </div>
+                    <div>
+                        <button class="ltc-btn ltc-btn-green" id="ltc-trip-start">INICIAR VIAJE</button>
+                        <button class="ltc-btn ltc-btn-green" id="ltc-trip-complete" style="background:#16a34a;">COMPLETAR</button>
+                    </div>
+                </div>
+                <div class="ltc-grid" style="margin-top:10px;">
+                    <div class="ltc-card"><div id="ltc-trip-duration">00:00:00</div><div class="muted">Duración</div></div>
+                    <div class="ltc-card"><div id="ltc-trip-distance">0.0 km</div><div class="muted">Distancia</div></div>
+                    <div class="ltc-card"><div id="ltc-trip-earning">$0</div><div class="muted">Estimado</div></div>
+                    <div class="ltc-card"><div id="ltc-trip-platform">Uber</div><div class="muted">Plataforma</div></div>
+                </div>
+            </div>
+
+            <div class="ltc-grid">
+                <div class="ltc-card"><div id="ltc-d-trips">0</div><div class="muted">Viajes Completados</div></div>
+                <div class="ltc-card"><div id="ltc-d-earnings">$0</div><div class="muted">Ganancias Totales</div></div>
+                <div class="ltc-card"><div id="ltc-d-avg">$0</div><div class="muted">Promedio por Viaje</div></div>
+                <div class="ltc-card"><div id="ltc-d-hours">0.0h</div><div class="muted">Horas Trabajadas</div></div>
+            </div>
+        </div>
+
+        <!-- MODO CHALLENGE (versión web simple) -->
+        <div class="challenge-section" id="challenge">
+            <h2 class="section-title">🏆 MODO CHALLENGE</h2>
+            <div style="text-align:center; margin-bottom:10px;">Superá tus límites y ganá puntos</div>
+            <div style="text-align:center; margin:12px 0;">
+                <button id="ch-start" class="ltc-btn ltc-btn-green">INICIAR</button>
+                <button id="ch-pause" class="ltc-btn ltc-btn-yellow">PAUSAR</button>
+                <button id="ch-reset" class="ltc-btn ltc-btn-red">REINICIAR</button>
+            </div>
+            <div class="ch-card" style="margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:800; font-size:20px;" id="ch-active-name">—</div>
+                        <div class="muted" id="ch-active-desc">Seleccioná un desafío para comenzar</div>
+                    </div>
+                    <div class="ch-badge" id="ch-reward" style="background:#f59e0b; color:#1f2937;">0 pts</div>
+                </div>
+                <div style="margin-top:12px;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Progreso</span>
+                        <span id="ch-progress-text">0%</span>
+                    </div>
+                    <div class="ch-progress"><div id="ch-progress-bar"></div></div>
+                </div>
+                <div class="ch-grid" style="margin-top:12px;">
+                    <div class="ch-card"><div id="ch-earn">$0</div><div class="muted">Ganancias</div></div>
+                    <div class="ch-card"><div id="ch-trips">0</div><div class="muted">Viajes</div></div>
+                    <div class="ch-card"><div id="ch-time">00:00:00</div><div class="muted">Tiempo</div></div>
+                    <div class="ch-card"><div id="ch-zones">0</div><div class="muted">Zonas</div></div>
+                </div>
+            </div>
+            <div class="ch-card" style="margin-bottom:12px;">
+                <h3 style="margin:0 0 10px 0">Seleccioná dificultad</h3>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="ltc-btn" id="ch-diff-easy" style="background:#22c55e;">FÁCIL</button>
+                    <button class="ltc-btn" id="ch-diff-medium" style="background:#f59e0b;">MEDIO</button>
+                    <button class="ltc-btn" id="ch-diff-hard" style="background:#ef4444;">DIFÍCIL</button>
+                </div>
+            </div>
+            <div class="ch-card">
+                <h3 style="margin:0 0 8px 0">Desafíos Disponibles</h3>
+                <div id="ch-list" class="ch-grid"></div>
             </div>
         </div>
 
@@ -667,6 +806,66 @@
         });
         window.addEventListener('load', ()=> setTimeout(calcular, 500));
 
+        // === Alertas de horarios premium (sin React) ===
+        const premiumSchedules = [
+            { id:'morning-rush', name:'Hora Pico Matutina', startTime:'07:00', endTime:'09:30', zones:['Centro','Zona Financiera','Universidades'], multiplier:1.5, description:'Mayor demanda de viajes al trabajo y universidades' },
+            { id:'lunch-time', name:'Hora de Almuerzo', startTime:'12:00', endTime:'14:00', zones:['Centro','Zona Comercial','Restaurantes'], multiplier:1.3, description:'Alta demanda en zonas de restaurantes y comercio' },
+            { id:'evening-rush', name:'Hora Pico Vespertina', startTime:'17:30', endTime:'20:00', zones:['Centro','Zona Residencial','Centros Comerciales'], multiplier:1.6, description:'Regreso a casa y actividades nocturnas' },
+            { id:'weekend-night', name:'Noche de Fin de Semana', startTime:'21:00', endTime:'03:00', zones:['Zona de Bares','Centro de Entretenimiento'], multiplier:1.8, description:'Alta demanda en zonas de entretenimiento nocturno', weekendOnly:true }
+        ];
+
+        let premiumAlerts = [];
+
+        function checkPremiumTime(){
+            const now=new Date(); const isWeekend = now.getDay()===0 || now.getDay()===6;
+            const hh=now.getHours(); const mm=now.getMinutes();
+            const active=[]; const newAlerts=[];
+            for(const s of premiumSchedules){
+                if(s.weekendOnly && !isWeekend) continue;
+                const [sh, sm]=s.startTime.split(':').map(Number); const [eh, em]=s.endTime.split(':').map(Number);
+                let inRange=false;
+                if (eh < sh) {
+                    inRange = (hh>sh || (hh===sh && mm>=sm)) || (hh<eh || (hh===eh && mm<=em));
+                } else {
+                    inRange = (hh>sh || (hh===sh && mm>=sm)) && (hh<eh || (hh===eh && mm<=em));
+                }
+                if (inRange) active.push(s);
+                const alertDate=new Date(now); alertDate.setHours(sh, sm-15, 0, 0);
+                if (Math.abs(now - alertDate) < 60000) newAlerts.push({ id:`alert-${s.id}-${Date.now()}`, schedule:s, message:'¡Horario Premium iniciando en 15 minutos!', timestamp:now });
+            }
+            premiumAlerts = [...premiumAlerts, ...newAlerts].slice(-10);
+            renderPremium(active);
+        }
+
+        function renderPremium(active){
+            const estado = document.getElementById('premium-estado-actual');
+            const proximo = document.getElementById('premium-proximo');
+            const historial = document.getElementById('premium-historial');
+            if(estado){
+                estado.innerHTML = active.length? active.map(s=>`<div style=\"display:flex; justify-content:space-between;\"><div><strong>${s.name}</strong><div class=\"muted\">${s.description}</div><div class=\"muted\">${s.startTime} - ${s.endTime}</div></div><span class=\"badge badge-green\">+${((s.multiplier-1)*100).toFixed(0)}%</span></div>`).join('<hr style=\"border:none; border-top:1px solid #eee; margin:8px 0;\">') : 'Sin horarios premium activos';
+            }
+            if(proximo){
+                const next = getNextPremiumSchedule();
+                proximo.innerHTML = next? `<div style=\"display:flex; justify-content:space-between;\"><div><strong>${next.name}</strong><div class=\"muted\">${next.description}</div><div class=\"muted\">${next.startTime} - ${next.endTime}</div></div><span class=\"badge badge-orange\">En ${Math.floor(next.timeDiff/60)}h ${next.timeDiff%60}m</span></div>` : 'No hay próximos horarios programados';
+            }
+            if(historial){
+                historial.innerHTML = premiumAlerts.length? premiumAlerts.slice().reverse().map(a=>`<div style=\"display:flex; justify-content:space-between;\"><div>${a.message}<div class=\"muted\">${a.schedule.name}</div></div><span class=\"muted\">${a.timestamp.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join('') : '—';
+            }
+        }
+
+        function getNextPremiumSchedule(){
+            const now=new Date(); const hh=now.getHours(); const mm=now.getMinutes(); const isWeekend=now.getDay()===0 || now.getDay()===6;
+            let next=null; let min=24*60;
+            for(const s of premiumSchedules){
+                if(s.weekendOnly && !isWeekend) continue;
+                const [sh,sm]=s.startTime.split(':').map(Number); let diff=(sh*60+sm)-(hh*60+mm); if(diff<0) diff+=24*60; if(diff<min){min=diff; next={...s, timeDiff:diff};}
+            }
+            return next;
+        }
+
+        setInterval(checkPremiumTime, 60000);
+        checkPremiumTime();
+
         /* ==== Mapa de calor: datos y funciones ==== */
         const zonasArgentina = {
             'Buenos Aires': { premium: [
@@ -770,7 +969,161 @@
         function actualizarEstadisticasZonas(){ const hist=JSON.parse(localStorage.getItem('historialZonas')||'[]'); if(hist.length===0) return; const frecu={}; let total=0; hist.forEach(r=>{ frecu[r.zona]=(frecu[r.zona]||0)+1; total+=r.ganancia; }); const fav=Object.entries(frecu).sort((a,b)=>b[1]-a[1])[0]; const prom=Math.round(total/hist.length); if(hist.length%10===0){ mostrarNotificacionEstadisticas(fav[0], prom, hist.length); } }
         function mostrarNotificacionEstadisticas(zonaFav, ganProm, total){ const n=document.createElement('div'); n.style.cssText='position:fixed; top:20px; right:20px; background:linear-gradient(45deg,#4CAF50,#45a049); color:white; padding:15px 20px; border-radius:10px; z-index:1001; box-shadow:0 4px 15px rgba(0,0,0,.3); max-width:300px;'; n.innerHTML=`<strong>📊 Estadísticas Actualizadas</strong><br>🏆 Zona favorita: ${zonaFav}<br>💰 Ganancia promedio: $${ganProm}/hora<br>📍 Zonas visitadas: ${total}`; document.body.appendChild(n); setTimeout(()=>n.remove(),5000); }
         function agregarEstilosCiudad(){ const style=document.createElement('style'); style.textContent=`.ciudad-btn{background:white;color:#667eea;border:2px solid transparent;padding:12px 20px;border-radius:25px;font-weight:600;cursor:pointer;transition:all .3s ease;font-size:.9rem}.ciudad-btn:hover{background:#667eea;color:white;transform:translateY(-2px);box-shadow:0 5px 15px rgba(102,126,234,.3)}.hidden{display:none!important}.zona-premium-item:hover{transform:translateX(5px); box-shadow:0 3px 10px rgba(0,0,0,.1)}.zona-comparacion:hover{background:#f0f8ff!important; cursor:pointer}`; document.head.appendChild(style);} 
-        document.addEventListener('DOMContentLoaded', ()=>{ agregarEstilosCiudad(); const btn=document.getElementById('detectar-ubicacion'); if(btn) btn.addEventListener('click', detectarUbicacion); });
+        document.addEventListener('DOMContentLoaded', ()=>{ agregarEstilosCiudad(); const btn=document.getElementById('detectar-ubicacion'); if(btn) btn.addEventListener('click', detectarUbicacion); initLiveTripCounter(); initChallengeMode(); });
+
+        // ==== Live Trip Counter (vanilla) ====
+        function initLiveTripCounter(){
+            const state = {
+                isActive:false, isPaused:false, workTime:0, sessionStart:null,
+                platforms:[
+                    { id:'uber', name:'Uber', color:'#111827', multiplier:1.2 },
+                    { id:'rappi', name:'Rappi', color:'#f97316', multiplier:1.0 },
+                    { id:'didi', name:'Didi', color:'#3b82f6', multiplier:1.1 },
+                    { id:'pedidosya', name:'PedidosYa', color:'#ef4444', multiplier:1.15 }
+                ],
+                trip:{ startTime:null, duration:0, platform:'uber', estimatedEarning:0, distance:0, status:'waiting' },
+                daily:{ trips:0, earnings:0, hours:0, distance:0, avgPerTrip:0, efficiency:0 }
+            };
+            let timer=null, tripTimer=null;
+            const $=id=>document.getElementById(id);
+            const fmtTime=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),t=s%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(t).padStart(2,'0')}`};
+            const fmtMoney=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:0}).format(n).replace('ARS','$');
+            function renderPlatforms(){ const root=$('ltc-platforms'); if(!root) return; root.innerHTML=''; state.platforms.forEach(p=>{ const b=document.createElement('button'); b.className='ltc-chip'+(state.trip.platform===p.id?' active':''); b.textContent=p.name; b.style.color='#fff'; b.onclick=()=>{ state.trip.platform=p.id; renderTrip(); }; root.appendChild(b); }); }
+            function renderHeader(){ const ind=$('ltc-indicator'), st=$('ltc-status'); if(!ind||!st) return; ind.style.background=(state.isActive&&!state.isPaused)?'#22c55e':(state.isPaused?'#f59e0b':'#6b7280'); st.textContent=(state.isActive&&!state.isPaused)?'ACTIVO':(state.isPaused?'EN PAUSA':'INACTIVO'); }
+            function renderWork(){ const el=$('ltc-worktime'); if(el) el.textContent=fmtTime(state.workTime); }
+            function renderTrip(){ $('ltc-trip-status').textContent= state.trip.status==='waiting'?'Esperando': state.trip.status==='en_route'?'En camino': state.trip.status==='delivering'?'Entregando':'¡Completado!'; $('ltc-trip-duration').textContent=fmtTime(state.trip.duration); $('ltc-trip-distance').textContent=`${state.trip.distance.toFixed(1)} km`; $('ltc-trip-earning').textContent=fmtMoney(state.trip.estimatedEarning); $('ltc-trip-platform').textContent = state.platforms.find(p=>p.id===state.trip.platform).name; renderDaily(); }
+            function renderDaily(){ $('ltc-d-trips').textContent=state.daily.trips; $('ltc-d-earnings').textContent=fmtMoney(state.daily.earnings); $('ltc-d-avg').textContent=fmtMoney(state.daily.avgPerTrip||0); $('ltc-d-hours').textContent=`${state.daily.hours.toFixed(1)}h`; }
+            function updateRealtime(){ state.daily.hours=state.workTime/3600; state.daily.avgPerTrip= state.daily.trips>0? state.daily.earnings/state.daily.trips:0; state.daily.efficiency = state.daily.hours>0? (state.daily.earnings/state.daily.hours):0; renderDaily(); }
+            function startSession(){ state.isActive=true; state.isPaused=false; state.sessionStart=new Date(); state.workTime=0; clearInterval(timer); timer=setInterval(()=>{ if(state.isActive&&!state.isPaused){ state.workTime++; if(state.workTime%30===0) updateRealtime(); renderWork(); } },1000); renderHeader(); }
+            function pauseSession(){ state.isPaused=!state.isPaused; renderHeader(); }
+            function stopSession(){ state.isActive=false; state.isPaused=false; clearInterval(timer); clearInterval(tripTimer); state.trip.status='waiting'; state.trip.duration=0; state.trip.distance=0; state.trip.estimatedEarning=0; renderHeader(); renderTrip(); }
+            function startTrip(){ if(!state.isActive) return; state.trip.startTime=new Date(); state.trip.duration=0; state.trip.distance=0; state.trip.estimatedEarning=5+Math.random()*10; state.trip.status='en_route'; clearInterval(tripTimer); tripTimer=setInterval(()=>{ if(state.trip.status!=='completed'){ state.trip.duration++; state.trip.distance+=Math.random()*0.1; state.trip.estimatedEarning+=Math.random()*0.05; renderTrip(); } },1000); }
+            function completeTrip(){ const mult=state.platforms.find(p=>p.id===state.trip.platform).multiplier; const earn=state.trip.estimatedEarning*mult; state.daily.trips++; state.daily.earnings+=earn; state.daily.distance+=state.trip.distance; state.trip.status='completed'; renderTrip(); updateRealtime(); setTimeout(()=>{ state.trip.status='waiting'; state.trip.duration=0; state.trip.distance=0; state.trip.estimatedEarning=0; renderTrip(); },1200); }
+            $('ltc-start')?.addEventListener('click', startSession);
+            $('ltc-pause')?.addEventListener('click', pauseSession);
+            $('ltc-stop')?.addEventListener('click', stopSession);
+            $('ltc-trip-start')?.addEventListener('click', startTrip);
+            $('ltc-trip-complete')?.addEventListener('click', completeTrip);
+            renderPlatforms(); renderHeader(); renderWork(); renderTrip(); renderDaily();
+        }
+
+        // ==== Modo Challenge (vanilla) ====
+        function initChallengeMode(){
+            const $ = (id)=>document.getElementById(id);
+            const fmtTime = (s)=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),t=s%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(t).padStart(2,'0')}`};
+            const fmtMoney = (n)=> new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:0}).format(n).replace('ARS','$');
+
+            const challenges = {
+                facil: [
+                    { id:'starter', name:'Primer Paso', icon:'🎯', target:{ earnings:4000, time:6 }, description:'Gana $4,000 en 6 horas', reward:100, strategy:'Mantén un ritmo constante, acepta viajes cortos' },
+                    { id:'consistent', name:'Consistencia', icon:'⚡', target:{ trips:8, time:8 }, description:'Completa 8 viajes en 8 horas', reward:150, strategy:'Enfócate en zonas con demanda media' },
+                    { id:'early_bird', name:'Madrugador', icon:'🌅', target:{ earnings:3000, time:4, timeWindow:'6-10' }, description:'Gana $3,000 entre 6-10 AM', reward:200, strategy:'Aprovecha la demanda matutina' }
+                ],
+                medio: [
+                    { id:'daily_hero', name:'Héroe Diario', icon:'🏆', target:{ earnings:6000, time:8 }, description:'Gana $6,000 en 8 horas', reward:250, strategy:'6 viajes más en zona premium, tiempo estimado: 2.1 horas' },
+                    { id:'zone_master', name:'Maestro de Zonas', icon:'🗺️', target:{ zones:5, earnings:7000, time:10 }, description:'Trabaja en 5 zonas diferentes y gana $7,000', reward:300, strategy:'Diversifica ubicaciones para maximizar demanda' },
+                    { id:'efficiency_king', name:'Rey de Eficiencia', icon:'⚡', target:{ avgPerTrip:800, trips:10 }, description:'Promedio de $800+ por viaje en 10 viajes', reward:350, strategy:'Selecciona viajes de mayor valor, evita distancias cortas' }
+                ],
+                dificil: [
+                    { id:'legendary', name:'Legendario', icon:'👑', target:{ earnings:10000, time:12, rating:4.8 }, description:'Gana $10,000 en 12 horas manteniendo 4.8+ rating', reward:500, strategy:'Combina volumen con calidad, zonas premium' },
+                    { id:'iron_man', name:'Hombre de Hierro', icon:'🔥', target:{ earnings:8000, time:6, noBreaks:true }, description:'Gana $8,000 en 6 horas sin pausas', reward:600, strategy:'Máxima intensidad, zonas de alta rotación' },
+                    { id:'multi_platform', name:'Multi-Plataforma', icon:'🎮', target:{ platforms:3, earnings:9000, time:10 }, description:'Usa 3 plataformas y gana $9,000', reward:550, strategy:'Optimiza según demanda de cada plataforma' }
+                ]
+            };
+
+            const state = {
+                selectedDifficulty:'medio',
+                active:null,
+                sessionActive:false,
+                sessionTime:0,
+                progress:{ earnings:0, trips:0, zones:new Set(), hours:0 },
+                timer:null
+            };
+
+            function renderList(){
+                const root = $('ch-list'); if(!root) return;
+                const list = challenges[state.selectedDifficulty] || [];
+                root.innerHTML = list.map(c=>`
+                    <div class="ch-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <div style="font-size:28px;">${c.icon}</div>
+                            <div class="ch-badge" style="background:#a78bfa;">${c.reward} pts</div>
+                        </div>
+                        <div style="font-weight:700;">${c.name}</div>
+                        <div class="muted" style="margin:6px 0 10px 0;">${c.description}</div>
+                        <button class="ltc-btn" style="background:#6366f1; width:100%;" data-ch-id="${c.id}">INICIAR DESAFÍO</button>
+                    </div>
+                `).join('');
+            }
+
+            function calcProgress(){
+                if(!state.active) return 0;
+                const t = state.active.target; let total=0, count=0;
+                if(t.earnings){ total += (state.progress.earnings / t.earnings)*100; count++; }
+                if(t.trips){ total += (state.progress.trips / t.trips)*100; count++; }
+                if(t.zones){ total += (state.progress.zones.size / t.zones)*100; count++; }
+                return Math.min((count? total/count : 0), 100);
+            }
+
+            function updateUI(){
+                $('ch-earn').textContent = fmtMoney(state.progress.earnings);
+                $('ch-trips').textContent = String(state.progress.trips);
+                $('ch-time').textContent = fmtTime(state.sessionTime);
+                $('ch-zones').textContent = String(state.progress.zones.size);
+                const p = calcProgress();
+                $('ch-progress-text').textContent = `${p.toFixed(1)}%`;
+                $('ch-progress-bar').style.width = `${p}%`;
+                if(state.active){
+                    $('ch-active-name').textContent = `${state.active.icon} ${state.active.name}`;
+                    $('ch-active-desc').textContent = state.active.description;
+                    $('ch-reward').textContent = `${state.active.reward} pts`;
+                }
+            }
+
+            function start(ch){
+                state.active = ch;
+                state.sessionActive = true;
+                state.sessionTime = 0;
+                state.progress = { earnings:0, trips:0, zones:new Set(), hours:0 };
+                clearInterval(state.timer);
+                state.timer = setInterval(()=>{
+                    if(!state.sessionActive || !state.active) return;
+                    state.sessionTime += 1;
+                    if(Math.random() < 0.10){
+                        const addEarn = 50 + Math.random()*100;
+                        const gotTrip = Math.random() < 0.03;
+                        state.progress.earnings += addEarn;
+                        if(gotTrip){ state.progress.trips += 1; state.progress.zones.add(`zona_${Math.floor(Math.random()*10)}`); }
+                        state.progress.hours = state.sessionTime/3600;
+                    }
+                    updateUI();
+                }, 1000);
+                updateUI();
+            }
+
+            function pause(){ state.sessionActive = !state.sessionActive; }
+            function reset(){ clearInterval(state.timer); state.active=null; state.sessionActive=false; state.sessionTime=0; state.progress={ earnings:0, trips:0, zones:new Set(), hours:0 }; updateUI(); }
+
+            // Events
+            $('ch-start')?.addEventListener('click', ()=>{
+                if(!state.active){
+                    // iniciar el primero de la dificultad por defecto
+                    const first = (challenges[state.selectedDifficulty]||[])[0]; if(first) start(first);
+                } else { state.sessionActive = true; }
+            });
+            $('ch-pause')?.addEventListener('click', pause);
+            $('ch-reset')?.addEventListener('click', reset);
+            $('ch-diff-easy')?.addEventListener('click', ()=>{ state.selectedDifficulty='facil'; renderList(); });
+            $('ch-diff-medium')?.addEventListener('click', ()=>{ state.selectedDifficulty='medio'; renderList(); });
+            $('ch-diff-hard')?.addEventListener('click', ()=>{ state.selectedDifficulty='dificil'; renderList(); });
+            $('ch-list')?.addEventListener('click', (e)=>{
+                const btn = e.target.closest('button[data-ch-id]'); if(!btn) return;
+                const list = challenges[state.selectedDifficulty]||[]; const ch = list.find(x=>x.id===btn.getAttribute('data-ch-id'));
+                if(ch) start(ch);
+            });
+
+            renderList(); updateUI();
+        }
 
         window.iniciarGoogleAuth = iniciarGoogleAuth;
         window.cerrarSesion = cerrarSesion;
