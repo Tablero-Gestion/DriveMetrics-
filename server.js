@@ -10,6 +10,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth');
 const paymentRoutes = require('./routes/payments');
+const aiRoutes = require('./routes/ai');
 
 const publicRoot = __dirname;
 const port = process.env.PORT ? Number(process.env.PORT) : 5503;
@@ -116,6 +117,7 @@ app.use('/api/auth', authRoutes);
 // Compatibilidad con frontend que llama a /api/login y /api/registro
 app.use('/api', authRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/ai', aiRoutes);
 
 const server = http.createServer((req, res) => {
   // Simple API router
