@@ -5,7 +5,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { OAuth2Client } = require('google-auth-library');
-require('dotenv').config({ path: require('path').join(__dirname, 'env.local') });
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,8 +20,11 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-// Servir estáticos desde la carpeta actual para cargar index.html existente
-app.use(express.static(__dirname));
+// Servir estáticos desde la carpeta public
+const path = require('path');
+const publicDir = path.join(__dirname, 'public');
+app.use(express.static(publicDir));
+app.get('/', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
 
 // Configuración de la base de datos MySQL
 const dbConfig = {
