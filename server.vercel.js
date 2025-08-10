@@ -4,6 +4,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const { sql } = require('@vercel/postgres');
+const mercadopago = require('mercadopago');
 
 const app = express();
 
@@ -13,6 +14,13 @@ const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
+
+// MercadoPago setup (acepta variables estilo MERCADOPAGO_* o MP_*)
+const MP_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || process.env.MP_ACCESS_TOKEN;
+const MP_INTEGRATOR_ID = process.env.MERCADOPAGO_INTEGRATOR_ID || process.env.MP_INTEGRATOR_ID;
+if (MP_ACCESS_TOKEN) {
+  mercadopago.configure({ access_token: MP_ACCESS_TOKEN, integrator_id: MP_INTEGRATOR_ID });
+}
 
 function generateSessionToken() {
   return jwt.sign(
@@ -62,6 +70,41 @@ async function initDatabase() {
     );`;
   await sql`CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(session_token);`;
   await sql`CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON user_sessions(user_id);`;
+
+  // Subscriptions
+  await sql`
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      plan_type TEXT NOT NULL DEFAULT 'monthly',
+      status TEXT DEFAULT 'pending',
+      start_date TIMESTAMPTZ,
+      end_date TIMESTAMPTZ,
+      amount NUMERIC(10,2) NOT NULL,
+      currency TEXT DEFAULT 'ARS',
+      mp_preference_id TEXT,
+      mp_subscription_id TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);`;
+
+  // Payments
+  await sql`
+    CREATE TABLE IF NOT EXISTS payments (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      subscription_id BIGINT REFERENCES subscriptions(id) ON DELETE SET NULL,
+      mp_payment_id TEXT NOT NULL,
+      amount NUMERIC(10,2) NOT NULL,
+      currency TEXT DEFAULT 'ARS',
+      status TEXT NOT NULL,
+      payment_method TEXT,
+      payment_date TIMESTAMPTZ,
+      description TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);`;
 }
 
 app.get('/api', async (req, res) => {
@@ -197,6 +240,119 @@ app.get('/api/stats', async (req, res) => {
   } catch (error) {
     console.error('❌ Error obteniendo estadísticas:', error);
     res.status(500).json({ success: false, error: 'Error interno del servidor' });
+  }
+});
+
+app.get('/api/subscription/status', async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    if (!user_id) return res.status(400).json({ error: 'user_id requerido' });
+    const { rows: subs } = await sql`SELECT * FROM subscriptions WHERE user_id=${user_id} ORDER BY created_at DESC LIMIT 1;`;
+    if (!subs.length) return res.json({ subscription_status:'none', has_access:false });
+    const s = subs[0];
+    let hasAccess = false;
+    if (s.status === 'active' && s.end_date) {
+      hasAccess = new Date(s.end_date) > new Date();
+    }
+    res.json({ subscription_status: s.status, has_access: hasAccess, subscription_end_date: s.end_date });
+  } catch (e) {
+    console.error('status error', e);
+    res.status(500).json({ error: 'Error obteniendo estado' });
+  }
+});
+
+app.get('/api/payments/history', async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    if (!user_id) return res.status(400).json({ error:'user_id requerido' });
+    const { rows } = await sql`SELECT * FROM payments WHERE user_id=${user_id} ORDER BY created_at DESC;`;
+    res.json({ payments: rows });
+  } catch (e) {
+    console.error('history error', e);
+    res.status(500).json({ error: 'Error obteniendo historial' });
+  }
+});
+
+app.post('/api/subscription/cancel', async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) return res.status(400).json({ error:'user_id requerido' });
+    await sql`UPDATE subscriptions SET status='cancelled', updated_at=NOW() WHERE user_id=${user_id} AND status='active';`;
+    res.json({ message: 'Suscripción cancelada' });
+  } catch (e) {
+    console.error('cancel error', e);
+    res.status(500).json({ error: 'No se pudo cancelar' });
+  }
+});
+
+// ====== Pagos y Suscripciones (Vercel) ======
+app.post('/api/payments/create-preference', async (req, res) => {
+  try {
+    if (!process.env.MP_ACCESS_TOKEN) {
+      return res.status(400).json({ error: 'MercadoPago no configurado' });
+    }
+
+    const { user_id, email, plan_type = 'monthly' } = req.body;
+    if (!user_id || !email) return res.status(400).json({ error: 'user_id y email requeridos' });
+    const plans = { monthly:{ price:2999, title:'DriveMetrics Pro - Mensual' }, annual:{ price:29999, title:'DriveMetrics Pro - Anual' } };
+    const selected = plans[plan_type]; if(!selected) return res.status(400).json({ error:'Plan inválido' });
+
+    const preference = {
+      items: [{ title:selected.title, unit_price: selected.price, quantity:1, currency_id:'ARS', description:`Suscripción ${plan_type} a DriveMetrics Pro` }],
+      payer: { email },
+      back_urls: {
+        success: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success`,
+        failure: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/failure`,
+        pending: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/pending`
+      },
+      auto_return: 'approved',
+      external_reference: `user_${user_id}_${plan_type}_${Date.now()}`,
+      notification_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payments/webhook`,
+      expires: true,
+      expiration_date_from: new Date().toISOString(),
+      expiration_date_to: new Date(Date.now()+24*60*60*1000).toISOString()
+    };
+
+    const resp = await mercadopago.preferences.create(preference);
+    await sql`INSERT INTO subscriptions (user_id, plan_type, amount, currency, status, mp_preference_id) VALUES (${user_id}, ${plan_type}, ${selected.price}, 'ARS', 'pending', ${resp.body.id});`;
+    res.json({ preference_id: resp.body.id, init_point: resp.body.init_point, sandbox_init_point: resp.body.sandbox_init_point, plan: { type: plan_type, price: selected.price, title: selected.title } });
+  } catch (e) {
+    console.error('Error creando preferencia:', e);
+    res.status(500).json({ error: 'No se pudo crear la preferencia' });
+  }
+});
+
+app.post('/api/payments/webhook', async (req, res) => {
+  try {
+    const { type, data } = req.body || {};
+    if (type === 'payment' && data?.id) {
+      try {
+        const payment = await mercadopago.payment.findById(data.id);
+        const p = payment.body;
+        if (p.status === 'approved') {
+          const ref = p.external_reference || '';
+          const parts = ref.split('_');
+          const userId = Number(parts[1]);
+          const planType = parts[2];
+          const durationDays = planType === 'annual' ? 365 : 30;
+          const endDate = new Date(Date.now() + durationDays*24*60*60*1000);
+
+          // update user (if exists) is in another db on MySQL in local; here only subscriptions/payments
+          const { rows: subs } = await sql`SELECT id FROM subscriptions WHERE user_id=${userId} AND status='pending' ORDER BY created_at DESC LIMIT 1;`;
+          const subId = subs.length? subs[0].id : null;
+          if (subId) {
+            await sql`UPDATE subscriptions SET status='active', start_date=${new Date().toISOString()}, end_date=${endDate.toISOString()}, mp_subscription_id=${p.id}, updated_at=NOW() WHERE id=${subId};`;
+          }
+          await sql`INSERT INTO payments (user_id, subscription_id, mp_payment_id, amount, currency, status, payment_method, payment_date, description) VALUES (${userId}, ${subId}, ${String(p.id)}, ${Number(p.transaction_amount)||0}, ${p.currency_id||'ARS'}, ${p.status}, ${p.payment_type_id||''}, ${new Date().toISOString()}, ${`Suscripción ${planType} - DriveMetrics Pro`});`;
+        }
+      } catch (err) {
+        console.error('Webhook payment fetch error:', err);
+      }
+    }
+    res.status(200).send('OK');
+  } catch (e) {
+    console.error('Webhook error:', e);
+    res.status(200).send('OK');
   }
 });
 
