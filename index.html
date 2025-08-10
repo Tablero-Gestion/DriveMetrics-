@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora Ganancias Uber/Rappi Argentina</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .calculator-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .input-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .results-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            color: white;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .input-group {
+            margin-bottom: 16px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .inline {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .platform-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .platform-btn {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .platform-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-top: 6px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .result-title {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        
+        .recommendations {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .export-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .export-btn {
+            background: #28a745;
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .export-btn.secondary {
+            background: #17a2b8;
+        }
+        
+        .muted-note {
+            color: #cfe1ff;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+        
+        /* Predictor IA */
+        .predictor-ia-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            color: white;
+        }
+
+        .predictor-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .prediccion-card {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .prediccion-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .prediccion-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .ia-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .prediccion-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .prediccion-content {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffd700;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .prediccion-highlight {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .prediccion-numero {
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Mapa de Calor - Zonas Premium */
+        .mapa-calor-section {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 30px 0;
+        }
+
+        .ubicacion-detector {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .detectar-btn {
+            background: white;
+            color: #667eea;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .detectar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .ubicacion-info {
+            margin-top: 15px;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .mapa-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .zona-actual-card, .zonas-premium-card, .comparacion-zonas, .horarios-zona {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .zona-actual-card h3, .zonas-premium-card h3, .comparacion-zonas h3, .horarios-zona h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .zona-premium-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            border-left: 3px solid #00ff88;
+        }
+
+        .zona-nombre-premium { font-weight: 600; }
+        .zona-ganancia { color: #00ff88; font-weight: bold; }
+
+        .zona-comparacion {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .zona-potencial { color: #667eea; font-weight: bold; }
+        .zona-diferencia { background: #00ff88; color: white; padding: 5px 10px; border-radius: 15px; text-align: center; font-size: 0.9rem; font-weight: bold; }
+        .zona-diferencia.negativa { background: #ff4757; }
+
+        .horario-zona-item { background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 3px solid #ffd700; }
+        .horario-zona-titulo { font-weight: 600; color: #333; margin-bottom: 5px; }
+        .horario-zona-detalle { font-size: 0.9rem; color: #666; }
+
+        .alerta-zona {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .hidden { display: none; }
+        .ciudad-btn { background: white; color: #667eea; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        /* Banner de navegación */
+        .nav-banner {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            background: #1e3c72;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            z-index: 1002;
+            display: none;
+            max-width: 520px;
+            width: calc(100% - 40px);
+        }
+        .nav-banner .title { font-weight: 700; margin-bottom: 6px; }
+        .nav-banner .actions { display: flex; gap: 10px; margin-top: 8px; }
+        .nav-banner button { background: #00c38a; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .nav-banner button.secondary { background: #344a92; }
+
+        /* Alertas de Horarios Premium */
+        .premium-alerts-section {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin: 24px 0;
+            border-left: 4px solid #ffd700;
+        }
+        .premium-alerts-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .premium-alerts-actions { display: flex; gap: 8px; align-items: center; }
+        .badge { padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 0.8rem; }
+        .badge.live { background: #00c38a; color: white; }
+        .badge.idle { background: #e0e7ff; color: #1e3c72; }
+        .alerts-toggle { background: #667eea; color: white; border: 0; padding: 8px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .alerts-toggle.secondary { background: #94a3b8; }
+        .premium-alerts-body { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .alerts-card { background: #f8f9ff; padding: 14px; border-radius: 10px; }
+        .alerts-title { color: #1f2a44; font-weight: 700; margin-bottom: 6px; }
+
+        /* Comparador Multi-plataforma */
+        .comparador-section {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin: 24px 0;
+        }
+        .comparador-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .comparador-sub { color: #667eea; font-weight: 700; }
+        .comparador-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; }
+        .comparador-item { background: #f8f9ff; border-left: 4px solid #667eea; border-radius: 10px; padding: 14px; display: flex; align-items: center; gap: 12px; }
+        .comparador-item .icon { font-size: 1.4rem; }
+        .comparador-item .name { font-weight: 700; color: #1f2a44; }
+        .comparador-item .value { margin-left: auto; font-weight: 800; color: #1f2a44; }
+        .comparador-resumen { margin-top: 12px; font-weight: 700; }
+        .comparador-ajustes { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+        .ajuste-item { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; }
+        .ajuste-item label { display: block; font-weight: 600; color: #1f2a44; margin-bottom: 4px; font-size: 0.9rem; }
+        .ajuste-item input { width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; }
+
+        /* Optimización automática / Viajes / Inversiones / Desafío */
+        .tool-section { background: #ffffff; padding: 24px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin: 24px 0; }
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+        .tool-item { background: #f8f9ff; border-radius: 10px; padding: 14px; }
+        .tool-item label { display:block; font-weight: 600; margin-bottom: 6px; color:#1f2a44; }
+        .tool-item input { width: 100%; padding: 10px; border:1px solid #e5e7eb; border-radius:8px; }
+        .primary-btn { background: #667eea; color:#fff; border:0; padding:10px 14px; border-radius:8px; font-weight:700; cursor:pointer; }
+        .muted { color:#64748b; font-size: 0.9rem; }
+        .output-card { background:#f8f9ff; border-left:4px solid #00c38a; padding:14px; border-radius:10px; }
+        .progress-wrap { background:#edf2ff; border-radius:10px; height:14px; overflow:hidden; }
+        .progress-bar { height:100%; background:linear-gradient(90deg,#00c38a,#12d6a6); width:0%; transition:width .3s ease; }
+
+        /* Login / Registro */
+        .login-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .login-box h1 { margin-bottom: 10px; color: #333; }
+        .login-box p { margin-bottom: 20px; color: #666; }
+        .login-box .input-group { margin-bottom: 15px; }
+        .login-box input { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        .login-box button { width: 100%; padding: 15px; background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; }
+        .trial-info { margin-top: 30px; padding: 20px; background: #f8f9ff; border-radius: 8px; }
+        .trial-info h3 { color: #667eea; margin-bottom: 10px; }
+        .trial-info a { color: #667eea; font-weight: 700; text-decoration: underline; cursor: pointer; }
+        #calculadora-container { display: none; }
+
+        
+        
+        @media (max-width: 768px) {
+            .calculator-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .platform-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            .inline {
+                grid-template-columns: 1fr;
+            }
+            .predictor-container { grid-template-columns: 1fr; }
+        }
+    </style>
+    <meta name="description" content="Calculadora de ganancias para repartidores y conductores de Uber, Rappi y PedidosYa en Argentina. Estima ingresos netos considerando comisiones, combustible, mantenimiento e impuestos." />
+</head>
+<body>
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <h1>🚗💰 Calculadora Pro</h1>
+            <p>Acceso para drivers premium</p>
+            
+            <form id="login-form">
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Usuario" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Contraseña" required>
+                </div>
+                <button type="submit">Ingresar</button>
+            </form>
+            
+            <div class="trial-info">
+                <h3>🎁 10 días GRATIS</h3>
+                <p>Después solo $1500/mes</p>
+                <p>¿No tenés cuenta? <a onclick="mostrarRegistro()">Registrate gratis</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE REGISTRO -->
+    <div id="registro-screen" class="login-container hidden">
+        <div class="login-box">
+            <h1>📝 Registro Gratuito</h1>
+            <p>10 días gratis, después $1500/mes</p>
+            
+            <form id="registro-form">
+                <div class="input-group">
+                    <input type="text" id="reg-nombre" placeholder="Tu nombre" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="reg-telefono" placeholder="WhatsApp" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="reg-username" placeholder="Elegí un usuario" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="reg-password" placeholder="Elegí contraseña" required>
+                </div>
+                <button type="submit">🚀 Comenzar Prueba Gratis</button>
+            </form>
+            
+            <p style="margin-top:10px;"><a onclick="mostrarLogin()">¿Ya tenés cuenta? Ingresá acá</a></p>
+        </div>
+    </div>
+    <div class="container">
+        <header class="header">
+            <h1>🚗💰 Calculadora de Ganancias</h1>
+            <p>Uber • Rappi • Pedidos Ya • Argentina</p>
+        </header>
+
+        <div class="calculator-container">
+            <section class="input-section">
+                <h2 class="section-title">📊 Datos de Trabajo</h2>
+
+                <div class="platform-selector" id="platformSelector">
+                    <button class="platform-btn active" data-platform="uber">
+                        🚗 Uber
+                    </button>
+                    <button class="platform-btn" data-platform="didi">
+                        🚖 DiDi
+                    </button>
+                    <button class="platform-btn" data-platform="rappi">
+                        🛵 Rappi
+                    </button>
+                    <button class="platform-btn" data-platform="pedidosya">
+                        🍕 PedidosYa
+                    </button>
+                </div>
+
+                <div class="input-group">
+                    <label>💵 Ganancia Bruta (por día)</label>
+                    <input type="number" id="ganancia-bruta" placeholder="8000" value="8000">
+                </div>
+
+                <div class="input-group">
+                    <label>⏰ Horas trabajadas (por día)</label>
+                    <input type="number" id="horas-dia" placeholder="8" value="8">
+                </div>
+
+                <div class="input-group">
+                    <label>🏢 Días trabajados (por semana)</label>
+                    <input type="number" id="dias-semana" placeholder="6" value="6">
+                </div>
+
+                <div class="input-group">
+                    <label>⛽ Km recorridos (por día)</label>
+                    <input type="number" id="km-dia" placeholder="150" value="150">
+                </div>
+
+                <div class="input-group">
+                    <label>🚗 Consumo del auto (km/litro)</label>
+                    <input type="number" id="consumo-auto" placeholder="12" value="12">
+                </div>
+
+                <div class="input-group">
+                    <label>⛽ Precio nafta (por litro)</label>
+                    <input type="number" id="precio-nafta" placeholder="850" value="850">
+                </div>
+
+                <div class="input-group">
+                    <label>🔧 Gastos adicionales (por día)</label>
+                    <input type="number" id="gastos-adicionales" placeholder="500" value="500">
+                </div>
+
+                <button class="calculate-btn" id="btn-calcular">🧮 CALCULAR GANANCIAS REALES</button>
+            </section>
+
+            <section class="results-section">
+                <h2 class="section-title">💰 Tus Ganancias Reales</h2>
+
+                <div class="result-card">
+                    <div class="result-title">Ganancia por hora</div>
+                    <div class="result-value" id="ganancia-hora">$0</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">Ganancia diaria NETA</div>
+                    <div class="result-value" id="ganancia-dia">$0</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">Ganancia semanal</div>
+                    <div class="result-value" id="ganancia-semana">$0</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">Ganancia mensual</div>
+                    <div class="result-value" id="ganancia-mes">$0</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-title">Gastos totales por día</div>
+                    <div class="result-value" id="gastos-totales">$0</div>
+                </div>
+            </section>
+        </div>
+
+        <section class="recommendations" id="recoSection">
+            <h2 class="section-title">💡 Recomendaciones Personalizadas</h2>
+            <div id="recomendaciones-content">
+                <p>Completa los datos arriba para ver tus recomendaciones personalizadas</p>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button class="export-btn" id="btn-exportar-pdf">📄 Exportar PDF</button>
+                <button class="export-btn" id="btn-compartir">📱 Compartir Resultados</button>
+            </div>
+        </section>
+
+        <!-- SECCIÓN PREDICTOR IA -->
+        <div class="predictor-ia-section">
+            <h2 class="section-title">🤖 Predictor IA Premium</h2>
+            <div class="predictor-container">
+                <div class="prediccion-card">
+                    <div class="ia-icon">🚀</div>
+                    <h3>Optimización Automática</h3>
+                    <div id="prediccion-optimizacion" class="prediccion-content">
+                        Analizando tus datos...
+                    </div>
+                </div>
+                
+                <div class="prediccion-card">
+                    <div class="ia-icon">📊</div>
+                    <h3>Comparación Inteligente</h3>
+                    <div id="prediccion-comparacion" class="prediccion-content">
+                        Calculando mejores opciones...
+                    </div>
+                </div>
+                
+                <div class="prediccion-card">
+                    <div class="ia-icon">💰</div>
+                    <h3>Potencial de Crecimiento</h3>
+                    <div id="prediccion-crecimiento" class="prediccion-content">
+                        Evaluando oportunidades...
+                    </div>
+                </div>
+                
+                <div class="prediccion-card full-width">
+                    <div class="ia-icon">🎯</div>
+                    <h3>Plan de Acción Personalizado</h3>
+                    <div id="plan-accion" class="prediccion-content">
+                        Generando estrategia óptima...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; text-align: center; color: white;">
+            <h3>🚀 ¿Te sirvió esta calculadora?</h3>
+            <p>Ayuda a otros drivers compartiendo esta herramienta</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+                Desarrollado por un argentino para argentinos 🇦🇷
+            </p>
+        </div>
+
+        <!-- MAPA DE CALOR DE GANANCIAS -->
+        <div class="mapa-calor-section">
+            <h2 class="section-title">📍 Mapa de Calor - Zonas Premium</h2>
+            
+            <div class="ubicacion-detector">
+                <button id="detectar-ubicacion" class="detectar-btn">📍 Detectar Mi Ubicación</button>
+                <div id="ubicacion-actual" class="ubicacion-info hidden">
+                    <strong>Tu ubicación:</strong> <span id="ciudad-detectada"></span>
+                </div>
+            </div>
+            
+            <div class="mapa-container">
+                <div class="zona-actual-card">
+                    <h3>📌 Tu Zona Actual</h3>
+                    <div id="analisis-zona-actual">
+                        <p>Detectá tu ubicación para análisis personalizado</p>
+                    </div>
+                </div>
+                
+                <div class="zonas-premium-card">
+                    <h3>🔥 Zonas Premium de Tu Ciudad</h3>
+                    <div id="zonas-premium-list">
+                        <p>Cargando zonas...</p>
+                    </div>
+                </div>
+                
+                <div class="comparacion-zonas">
+                    <h3>⚡ Comparación de Ganancias</h3>
+                    <div id="comparacion-ganancias-zonas"></div>
+                </div>
+                
+                <div class="horarios-zona">
+                    <h3>⏰ Mejores Horarios por Zona</h3>
+                    <div id="horarios-optimizados"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALERTAS DE HORARIOS PREMIUM -->
+        <div class="premium-alerts-section">
+            <div class="premium-alerts-header">
+                <h2 class="section-title" style="margin: 0;">⏰ Alertas de Horarios Premium</h2>
+                <div class="premium-alerts-actions">
+                    <span id="alerts-status" class="badge idle">OFF</span>
+                    <button id="btn-alerts-toggle" class="alerts-toggle">Activar</button>
+                </div>
+            </div>
+            <div class="premium-alerts-body" id="alerts-list">
+                <div class="alerts-card">
+                    <div class="alerts-title">Sugerencias</div>
+                    <div>Activá las alertas para recibir avisos cuando empiecen los picos de demanda.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPARADOR MULTI-PLATAFORMA EN TIEMPO REAL -->
+        <div class="comparador-section">
+            <div class="comparador-header">
+                <h2 class="section-title" style="margin: 0;">⚖️ Comparador Multi-plataforma</h2>
+                <div class="comparador-sub">Si trabajás <span id="cmp-horas">8</span> hs hoy</div>
+            </div>
+            <div class="comparador-ajustes">
+                <div class="ajuste-item">
+                    <label>Bruto diario Uber (ARS)</label>
+                    <input type="number" id="cmp-bruto-uber" placeholder="Ej: 10000">
+                </div>
+                <div class="ajuste-item">
+                    <label>Bruto diario DiDi (ARS)</label>
+                    <input type="number" id="cmp-bruto-didi" placeholder="Ej: 10500">
+                </div>
+                <div class="ajuste-item">
+                    <label>Bruto diario Rappi (ARS)</label>
+                    <input type="number" id="cmp-bruto-rappi" placeholder="Ej: 9000">
+                </div>
+                <div class="ajuste-item">
+                    <label>Bruto diario PedidosYa (ARS)</label>
+                    <input type="number" id="cmp-bruto-pedidosya" placeholder="Ej: 9200">
+                </div>
+            </div>
+            <div class="comparador-grid" id="comparador-grid">
+                <!-- Items dinámicos -->
+            </div>
+            <div class="comparador-resumen" id="comparador-resumen"></div>
+            <div class="muted" id="comparador-horarios" style="margin-top:6px;"></div>
+        </div>
+
+        <!-- MODO OPTIMIZACIÓN AUTOMÁTICA / CONTADOR / INVERSIONES / DESAFÍO -->
+        <div class="tool-section">
+            <h2 class="section-title" style="margin:0 0 10px;">🛠️ Herramientas Avanzadas</h2>
+
+            <div class="tool-grid">
+                <!-- Optimización Automática -->
+                <div class="tool-item">
+                    <label>¿Cuánto necesitás ganar por día? (ARS)</label>
+                    <input type="number" id="opt-meta-dia" placeholder="Ej: 6000">
+                    <div style="margin-top:10px;"><button class="primary-btn" id="btn-opt-calcular">Optimizar</button></div>
+                    <div id="opt-output" class="output-card" style="margin-top:10px;">
+                        Ingresá una meta y optimizaremos horas, plataforma y zonas.
+                    </div>
+                </div>
+
+                <!-- Contador de viajes en vivo -->
+                <div class="tool-item">
+                    <label>Contador de viajes</label>
+                    <div class="muted">Actualizá manualmente cada viaje completado</div>
+                    <div style="display:flex; gap:8px; align-items:center; margin:8px 0;">
+                        <label style="font-weight:500;">Ventana viajes (para VPH): </label>
+                        <input type="number" id="viajes-ventana" value="10" min="2" max="50" style="width:80px;">
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center; margin:8px 0;">
+                        <button class="primary-btn" id="btn-viaje-sumar">+1 viaje</button>
+                        <button class="primary-btn" id="btn-viaje-restar" style="background:#94a3b8;">-1</button>
+                        <button class="primary-btn" id="btn-viaje-reset" style="background:#ef4444;">Reset</button>
+                    </div>
+                    <div id="viajes-output" class="output-card">
+                        Viaje #0 de hoy - Llevás $0 - Meta: $0 (faltan 0 viajes)
+                        <div class="progress-wrap" style="margin-top:8px;"><div id="viajes-progress" class="progress-bar"></div></div>
+                    </div>
+                </div>
+
+                <!-- Calculadora de inversiones -->
+                <div class="tool-item">
+                    <label>💎 Calculadora de Inversiones</label>
+                    <div class="muted">Simulá recupero de inversión</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+                        <div>
+                            <label style="font-weight:500;">Auto nuevo (costo)</label>
+                            <input type="number" id="inv-auto" placeholder="Ej: 8,000,000">
+                        </div>
+                        <div>
+                            <label style="font-weight:500;">Mejora GNC (costo)</label>
+                            <input type="number" id="inv-gnc" placeholder="Ej: 600,000">
+                        </div>
+                        <div>
+                            <label style="font-weight:500;">Seguro premium (dif. mensual)</label>
+                            <input type="number" id="inv-seguro" placeholder="Ej: 25,000">
+                        </div>
+                        <div>
+                            <label style="font-weight:500;">Ahorro combustible diario</label>
+                            <input type="number" id="inv-ahorro-dia" placeholder="Ej: 2000">
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;"><button class="primary-btn" id="btn-inv-calcular">Calcular recuperación</button></div>
+                    <div id="inv-output" class="output-card" style="margin-top:10px;">Ingresá valores para ver si conviene.</div>
+                </div>
+
+                <!-- Desafío diario -->
+                <div class="tool-item">
+                    <label>🏆 Desafío Diario</label>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                        <div>
+                            <label style="font-weight:500;">Meta (ARS)</label>
+                            <input type="number" id="desafio-meta" placeholder="Ej: 6000">
+                        </div>
+                        <div>
+                            <label style="font-weight:500;">Horas objetivo</label>
+                            <input type="number" id="desafio-horas" placeholder="Ej: 8">
+                        </div>
+                    </div>
+                    <div id="desafio-output" class="output-card" style="margin-top:10px;">
+                        Definí tu meta y horas para ver progreso y plan.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer style="text-align:center; color: #e8f0ff; font-size: 0.85rem; margin: 16px 0 20px;">
+            Recordá ajustar los valores según tu realidad. Los precios y costos cambian con frecuencia.
+        </footer>
+    </div>
+
+    <script>
+        const currencyFormatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+
+        let plataformaSeleccionada = 'uber';
+        
+        const plataformasData = {
+            uber: {
+                comision: 0.25,
+                nombre: 'Uber',
+                horariosPico: ['7-9', '12-14', '19-22'],
+                consejos: [
+                    'Trabajá en horarios pico para maximizar ganancias',
+                    'Evitá zonas con mucho tráfico en horas punta',
+                    'Mantené el auto limpio para mejor rating'
+                ]
+            },
+            didi: {
+                comision: 0.20,
+                nombre: 'DiDi',
+                horariosPico: ['7-9', '12-14', '18-21'],
+                consejos: [
+                    'DiDi tiene menos comisión que Uber (20% vs 25%)',
+                    'Aceptá viajes largos, DiDi paga mejor distancia',
+                    'Mantené 4.8+ de rating para recibir más viajes',
+                    'Los martes y miércoles suelen tener bonos extras'
+                ]
+            },
+            rappi: {
+                comision: 0.15,
+                nombre: 'Rappi',
+                horariosPico: ['12-15', '19-23'],
+                consejos: [
+                    'Aceptá pedidos múltiples cuando sea posible',
+                    'Posicionate cerca de restaurantes populares',
+                    'Los fines de semana son más rentables'
+                ]
+            },
+            pedidosya: {
+                comision: 0.18,
+                nombre: 'PedidosYa',
+                horariosPico: ['12-14', '20-22'],
+                consejos: [
+                    'Mantené un buen puntaje para recibir más pedidos',
+                    'Conocé bien tu zona para ser más rápido',
+                    'Las lluvias aumentan la demanda'
+                ]
+            }
+        };
+
+        // Presets de bruto diario por plataforma (no se guardan en local)
+        const platformBrutoPresets = {
+            uber: 10000,
+            didi: 10500,
+            rappi: 9000,
+            pedidosya: 9200
+        };
+
+        // Selección de plataforma
+        document.querySelectorAll('.platform-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const key = btn.getAttribute('data-platform');
+                plataformaSeleccionada = key;
+                const preset = platformBrutoPresets[key];
+                if (typeof preset === 'number' && !Number.isNaN(preset)) {
+                    const brutoEl = document.getElementById('ganancia-bruta');
+                    if (brutoEl) brutoEl.value = String(preset);
+                }
+                calcular();
+                actualizarComparador();
+            });
+        });
+
+        function calcular() {
+            const gananciaBruta = parseFloat(document.getElementById('ganancia-bruta').value) || 0;
+            const horasDia = parseFloat(document.getElementById('horas-dia').value) || 1;
+            const diasSemana = parseFloat(document.getElementById('dias-semana').value) || 1;
+            const kmDia = parseFloat(document.getElementById('km-dia').value) || 0;
+            const consumoAuto = parseFloat(document.getElementById('consumo-auto').value) || 1;
+            const precioNafta = parseFloat(document.getElementById('precio-nafta').value) || 0;
+            const gastosAdicionales = parseFloat(document.getElementById('gastos-adicionales').value) || 0;
+
+            const plataforma = plataformasData[plataformaSeleccionada];
+            const comisionPlataforma = gananciaBruta * plataforma.comision;
+            const litrosConsumidos = kmDia / consumoAuto;
+            const gastoNafta = litrosConsumidos * precioNafta;
+            const gastosTotalesDia = gastoNafta + gastosAdicionales + comisionPlataforma;
+            
+            const gananciaNeta = gananciaBruta - gastosTotalesDia;
+            const gananciaHora = gananciaNeta / horasDia;
+            const gananciaSemana = gananciaNeta * diasSemana;
+            const gananciaMes = gananciaSemana * 4.33;
+
+            document.getElementById('ganancia-hora').textContent = currencyFormatter.format(gananciaHora);
+            document.getElementById('ganancia-dia').textContent = currencyFormatter.format(gananciaNeta);
+            document.getElementById('ganancia-semana').textContent = currencyFormatter.format(gananciaSemana);
+            document.getElementById('ganancia-mes').textContent = currencyFormatter.format(gananciaMes);
+            document.getElementById('gastos-totales').textContent = currencyFormatter.format(gastosTotalesDia);
+
+            generarRecomendaciones(gananciaHora, gananciaNeta, gastosTotalesDia, gananciaBruta);
+            actualizarPredictorIA({
+                gananciaBruta,
+                gananciaNeta,
+                gananciaHora,
+                diasSemana,
+                horasDia,
+                gastoNafta,
+                gastosAdicionales
+            });
+        }
+
+        function actualizarPredictorIA(ctx) {
+            // Optimización automática: mover 2 horas a pico -> +12% estimado del neto por día
+            const mejoraPicoPct = 0.12;
+            const netoMejorado = Math.max(ctx.gananciaNeta * (1 + mejoraPicoPct), 0);
+            const textoOpt = `Si movés <span class="prediccion-highlight">2h a horarios pico</span> podés subir tu neto diario a <span class="prediccion-numero">${currencyFormatter.format(netoMejorado)}</span> (+${Math.round(mejoraPicoPct*100)}%).`;
+            document.getElementById('prediccion-optimizacion').innerHTML = textoOpt;
+
+            // Comparación inteligente por comisión manteniendo mismos costos variables
+            const comparaciones = Object.entries(plataformasData).map(([key, p]) => {
+                const neto = ctx.gananciaBruta - (ctx.gananciaBruta * p.comision) - (ctx.gastoNafta + ctx.gastosAdicionales);
+                return { key, nombre: p.nombre, neto };
+            }).sort((a,b) => b.neto - a.neto);
+
+            const mejor = comparaciones[0];
+            const actual = comparaciones.find(c => c.key === plataformaSeleccionada);
+            const delta = actual ? (mejor.neto - actual.neto) : 0;
+            const comparacionHtml = `Mejor hoy: <span class="prediccion-highlight">${mejor.nombre}</span> con <span class="prediccion-numero">${currencyFormatter.format(mejor.neto)}</span> neto/día. ` +
+                (delta > 0.5 ? `Cambiar desde ${plataformasData[plataformaSeleccionada].nombre} implica +${currencyFormatter.format(delta)} por día.` : 'Tu plataforma actual ya es competitiva.');
+            document.getElementById('prediccion-comparacion').innerHTML = comparacionHtml;
+
+            // Potencial de crecimiento: +1 hora/día y +1 día/semana
+            const extraPorHoraDia = Math.max(ctx.gananciaHora, 0);
+            const extraMensualPorHora = extraPorHoraDia * ctx.diasSemana * 4.33;
+            const extraMensualPorDia = Math.max(ctx.gananciaNeta, 0) * 4.33;
+            const crecimientoHtml = `Sumando <span class="prediccion-highlight">+1h/día</span>: +${currencyFormatter.format(extraMensualPorHora)} al mes. ` +
+                `Agregando <span class="prediccion-highlight">+1 día/semana</span>: +${currencyFormatter.format(extraMensualPorDia)} al mes.`;
+            document.getElementById('prediccion-crecimiento').innerHTML = crecimientoHtml;
+
+            // Plan de acción
+            const plan = [
+                'Concentrate en picos: mañana, mediodía y tarde-noche.',
+                'Reducí trayectos en vacío: esperá cerca de zonas con demanda.',
+                'Monitoreá consumo: presión de neumáticos y mantenimiento al día.',
+                'Probá la plataforma con mejor neto por 1-2 días y compará.'
+            ];
+            document.getElementById('plan-accion').innerHTML = `<ul style="padding-left:18px;">${plan.map(p => `<li>${p}</li>`).join('')}</ul>`;
+        }
+
+        function generarRecomendaciones(gananciaHora, gananciaNeta, gastos, gananciaBruta) {
+            const plataforma = plataformasData[plataformaSeleccionada];
+            let recomendaciones = `<h3>📈 Análisis para ${plataforma.nombre}</h3>`;
+            
+            if (gananciaHora > 1000) {
+                recomendaciones += `<p>✅ <strong>Excelente:</strong> Ganás ${currencyFormatter.format(gananciaHora)} por hora. ¡Mantené este ritmo!</p>`;
+            } else if (gananciaHora > 600) {
+                recomendaciones += `<p>⚠️ <strong>Aceptable:</strong> Ganás ${currencyFormatter.format(gananciaHora)} por hora. Podés mejorar optimizando rutas.</p>`;
+            } else {
+                recomendaciones += `<p>🚨 <strong>Mejorable:</strong> Ganás solo ${currencyFormatter.format(gananciaHora)} por hora. Necesitás optimizar urgente.</p>`;
+            }
+
+            const porcentajeGastos = gananciaBruta > 0 ? (gastos / gananciaBruta) * 100 : 0;
+            recomendaciones += `<p><strong>Gastos:</strong> ${porcentajeGastos.toFixed(1)}% de tu ganancia bruta.</p>`;
+
+            if (porcentajeGastos > 60) {
+                recomendaciones += `<p>🚨 Tus gastos son muy altos. Considerá cambiar de auto o zona.</p>`;
+            }
+
+            recomendaciones += `<h4>⏰ Horarios más rentables:</h4>`;
+            recomendaciones += `<p>${plataforma.horariosPico.join(', ')}hs</p>`;
+
+            recomendaciones += `<h4>💡 Consejos para ${plataforma.nombre}:</h4><ul>`;
+            plataforma.consejos.forEach(consejo => {
+                recomendaciones += `<li>${consejo}</li>`;
+            });
+            recomendaciones += `</ul>`;
+
+            const proyeccionAnual = gananciaNeta * 365;
+            recomendaciones += `<h4>🎯 Proyección anual: ${currencyFormatter.format(proyeccionAnual)}</h4>`;
+
+            document.getElementById('recomendaciones-content').innerHTML = recomendaciones;
+        }
+
+        function exportarPDF() {
+            const resultados = {
+                plataforma: plataformasData[plataformaSeleccionada].nombre,
+                gananciaHora: document.getElementById('ganancia-hora').textContent,
+                gananciaDia: document.getElementById('ganancia-dia').textContent,
+                gananciaSemana: document.getElementById('ganancia-semana').textContent,
+                gananciaMes: document.getElementById('ganancia-mes').textContent
+            };
+
+            const contenido = `
+REPORTE DE GANANCIAS - ${resultados.plataforma}
+=====================================
+
+Ganancia por hora: ${resultados.gananciaHora}
+Ganancia diaria: ${resultados.gananciaDia}  
+Ganancia semanal: ${resultados.gananciaSemana}
+Ganancia mensual: ${resultados.gananciaMes}
+
+Fecha: ${new Date().toLocaleDateString('es-AR')}
+Calculadora: uber-rappi-calculator.com
+            `;
+
+            const blob = new Blob([contenido], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte-ganancias-${plataformasData[plataformaSeleccionada].nombre.toLowerCase()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('📄 Reporte descargado! Compartilo con otros drivers.');
+        }
+
+        function compartir() {
+            const resultados = `🚗💰 Mis ganancias reales en ${plataformasData[plataformaSeleccionada].nombre}:
+            
+Por hora: ${document.getElementById('ganancia-hora').textContent}
+Por día: ${document.getElementById('ganancia-dia').textContent}
+Por mes: ${document.getElementById('ganancia-mes').textContent}
+
+Calculá las tuyas en: uber-rappi-calculator.com`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Calculadora de Ganancias Uber/Rappi',
+                    text: resultados
+                });
+            } else {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(resultados);
+                    alert('📱 Resultados copiados! Pegalos donde quieras.');
+                } else {
+                    alert(resultados);
+                }
+            }
+        }
+
+        // ---- LOGIN / REGISTRO (Mock sin backend) ----
+        function mostrarRegistro() {
+            document.getElementById('login-screen')?.classList.add('hidden');
+            document.getElementById('registro-screen')?.classList.remove('hidden');
+        }
+        function mostrarLogin() {
+            document.getElementById('registro-screen')?.classList.add('hidden');
+            document.getElementById('login-screen')?.classList.remove('hidden');
+        }
+        function cerrarLogin() {
+            document.getElementById('login-screen')?.classList.add('hidden');
+            document.getElementById('registro-screen')?.classList.add('hidden');
+            // Mostrar la calculadora luego del login
+            const calc = document.querySelector('.container');
+            if (calc) calc.style.display = 'block';
+        }
+
+        (function initAuthUI(){
+            const base = location.origin;
+            const lf = document.getElementById('login-form');
+            const rf = document.getElementById('registro-form');
+            if (lf) lf.addEventListener('submit', async (e)=>{
+                e.preventDefault();
+                const u = document.getElementById('username').value.trim();
+                const p = document.getElementById('password').value.trim();
+                if (!u || !p) return;
+                try {
+                    const res = await fetch(base + '/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ username: u, password: p })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.ok) {
+                        cerrarLogin();
+                    } else {
+                        alert(data.error || 'Error de login');
+                    }
+                } catch {
+                    alert('No se pudo conectar con el servidor');
+                }
+            });
+            if (rf) rf.addEventListener('submit', async (e)=>{
+                e.preventDefault();
+                const u = document.getElementById('reg-username').value.trim();
+                const p = document.getElementById('reg-password').value.trim();
+                if (!u || !p) return;
+                try {
+                    const res = await fetch(base + '/api/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ username: u, password: p })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.ok) {
+                        cerrarLogin();
+                    } else {
+                        alert(data.error || 'Error de registro');
+                    }
+                } catch {
+                    alert('No se pudo conectar con el servidor');
+                }
+            });
+        })();
+
+        // ---- ALERTAS DE HORARIOS PREMIUM ----
+        let alertsEnabled = false;
+        let alertsTimer = null;
+
+        function getCiudadSeleccionada() {
+            const elem = document.getElementById('ciudad-detectada');
+            const texto = (elem?.textContent || '').replace('(aprox.)', '').replace('(por IP)', '').trim();
+            return texto && zonasArgentina[texto] ? texto : '';
+        }
+
+        // ---- COMPARADOR MULTI-PLATAFORMA ----
+        function actualizarComparador() {
+            const horas = Math.max(parseFloat(document.getElementById('horas-dia').value) || 8, 0);
+            document.getElementById('cmp-horas').textContent = horas;
+
+            // Estimar neto hora actual según inputs y plataforma activa
+            const gananciaBrutaBase = parseFloat(document.getElementById('ganancia-bruta').value) || 0;
+            const kmDia = parseFloat(document.getElementById('km-dia').value) || 0;
+            const consumoAuto = parseFloat(document.getElementById('consumo-auto').value) || 1;
+            const precioNafta = parseFloat(document.getElementById('precio-nafta').value) || 0;
+            const gastosAdicionales = parseFloat(document.getElementById('gastos-adicionales').value) || 0;
+
+            const litros = kmDia / consumoAuto;
+            const gastoNafta = litros * precioNafta;
+            const costosBase = gastoNafta + gastosAdicionales; // sin comisión
+
+            // Suposición: el usuario mantiene el mismo bruto diario para todas, pero cambia la comisión
+            const plataformas = [
+                { key: 'uber', icon: '🚗', nombre: 'Uber' },
+                { key: 'didi', icon: '🚖', nombre: 'DiDi' },
+                { key: 'rappi', icon: '🛵', nombre: 'Rappi' },
+                { key: 'pedidosya', icon: '🍕', nombre: 'PedidosYa' }
+            ];
+
+            const estimaciones = plataformas.map(p => {
+                const brutoOverride = parseFloat(document.getElementById(`cmp-bruto-${p.key}`)?.value) || NaN;
+                const gananciaBruta = isNaN(brutoOverride) ? gananciaBrutaBase : brutoOverride;
+                const comision = (plataformasData[p.key]?.comision || 0) * gananciaBruta;
+                const netoDia = Math.max(gananciaBruta - comision - costosBase, 0);
+                return { ...p, netoDia, netoHoras: netoDia }; // mostramos neto/día
+            });
+
+            const grid = document.getElementById('comparador-grid');
+            grid.innerHTML = estimaciones.map(e => `
+                <div class="comparador-item">
+                    <div class="icon">${e.icon}</div>
+                    <div class="name">${e.nombre}</div>
+                    <div class="value">${currencyFormatter.format(e.netoDia)}</div>
+                </div>
+            `).join('');
+
+            // Mejor opción y diferencia contra plataforma actual
+            const mejor = [...estimaciones].sort((a,b) => b.netoDia - a.netoDia)[0];
+            const actualKey = plataformaSeleccionada;
+            const actual = estimaciones.find(e => e.key === actualKey);
+            const diferencia = Math.max((mejor.netoDia - (actual?.netoDia || 0)), 0);
+
+            const resumen = document.getElementById('comparador-resumen');
+            if (diferencia > 0) {
+                resumen.textContent = `${mejor.nombre} te conviene ${currencyFormatter.format(diferencia)} más hoy`;
+            } else {
+                resumen.textContent = `Tu plataforma actual ya es la más conveniente hoy`;
+            }
+
+            // Horarios sugeridos por ciudad detectada
+            const ciudad = getCiudadSeleccionada();
+            const horas = plataformasData[mejor.key].horariosPico.join(', ');
+            const zonaTop = ciudad && zonasArgentina[ciudad]?.premium?.[0]?.nombre;
+            const horariosEl = document.getElementById('comparador-horarios');
+            if (horariosEl) {
+                horariosEl.textContent = ciudad ? `Sugerido en ${ciudad}${zonaTop? ` (zona: ${zonaTop})`:''}: ${horas} hs` : `Horarios sugeridos: ${horas} hs`;
+            }
+        }
+
+        // ---- OPTIMIZACIÓN AUTOMÁTICA ----
+        function optimizarPlan() {
+            const meta = parseFloat(document.getElementById('opt-meta-dia').value) || 0;
+            if (meta <= 0) {
+                document.getElementById('opt-output').textContent = 'Ingresá una meta válida.';
+                return;
+            }
+
+            // Usamos brutos por plataforma (overrides si los hay)
+            const brutoOverrides = {
+                uber: parseFloat(document.getElementById('cmp-bruto-uber')?.value),
+                didi: parseFloat(document.getElementById('cmp-bruto-didi')?.value),
+                rappi: parseFloat(document.getElementById('cmp-bruto-rappi')?.value),
+                pedidosya: parseFloat(document.getElementById('cmp-bruto-pedidosya')?.value)
+            };
+
+            const baseBruto = parseFloat(document.getElementById('ganancia-bruta').value) || 0;
+            const kmDia = parseFloat(document.getElementById('km-dia').value) || 0;
+            const consumoAuto = parseFloat(document.getElementById('consumo-auto').value) || 1;
+            const precioNafta = parseFloat(document.getElementById('precio-nafta').value) || 0;
+            const gastosAdicionales = parseFloat(document.getElementById('gastos-adicionales').value) || 0;
+            const horasDia = parseFloat(document.getElementById('horas-dia').value) || 1;
+
+            const litros = kmDia / consumoAuto;
+            const gastoNafta = litros * precioNafta;
+            const costosBase = gastoNafta + gastosAdicionales;
+
+            const plataformas = ['uber','didi','rappi','pedidosya'];
+            const candidatos = plataformas.map(key => {
+                const bruto = Number.isFinite(brutoOverrides[key]) ? brutoOverrides[key] : baseBruto;
+                const comision = (plataformasData[key].comision || 0) * bruto;
+                const netoDia = Math.max(bruto - comision - costosBase, 0);
+                const netoHora = netoDia / Math.max(horasDia, 1);
+                return { key, nombre: plataformasData[key].nombre, netoDia, netoHora };
+            }).sort((a,b) => b.netoHora - a.netoHora);
+
+            const mejor = candidatos[0];
+            const horasNecesarias = mejor.netoHora > 0 ? (meta / mejor.netoHora) : Infinity;
+            const ciudad = getCiudadSeleccionada() || 'Buenos Aires';
+            const dataCiudad = zonasArgentina[ciudad];
+            const zonasSugeridas = (dataCiudad?.premium || []).slice(0,3).map(z=>z.nombre).join(', ');
+            const horariosSugeridos = plataformasData[mejor.key].horariosPico.join(', ');
+            const zonaTop = (dataCiudad?.premium || [])[0]?.nombre;
+
+            document.getElementById('opt-output').innerHTML = `
+                Trabajá <strong>${horasNecesarias.toFixed(1)} hs</strong> en <strong>${mejor.nombre}</strong><br>
+                Zonas: <strong>${zonasSugeridas || 'zonas premium locales'}</strong><br>
+                Horarios: <strong>${horariosSugeridos} hs</strong>${zonaTop? `<br>Zona sugerida: <strong>${zonaTop}</strong>`:''}
+            `;
+        }
+
+        // ---- CONTADOR DE VIAJES EN VIVO ----
+        let contadorViajes = 0;
+        let viajeTimestamps = [];
+        function actualizarContadorViajes(delta) {
+            const now = Date.now();
+            if (delta > 0) { contadorViajes += 1; viajeTimestamps.push(now); }
+            if (delta < 0) { if (contadorViajes > 0) contadorViajes -= 1; if (viajeTimestamps.length > 0) viajeTimestamps.pop(); }
+            contadorViajes = Math.max(0, contadorViajes);
+
+            const meta = parseFloat(document.getElementById('opt-meta-dia').value) || 0;
+            const ganado = parseFloat(document.getElementById('ganancia-dia').textContent.replace(/[^0-9]/g,'')) || 0;
+            const promedioPorViaje = contadorViajes > 0 ? (ganado/contadorViajes) : 0;
+            const faltante = Math.max(meta - ganado, 0);
+            const viajesEstimados = promedioPorViaje > 0 ? Math.ceil(faltante / promedioPorViaje) : 0;
+
+            const salida = `Viaje #${contadorViajes} de hoy - Llevás ${currencyFormatter.format(ganado)} - Meta: ${currencyFormatter.format(meta)} (faltan ${viajesEstimados} viajes)`;
+            document.getElementById('viajes-output').innerHTML = `${salida}
+                <div class="progress-wrap" style="margin-top:8px;"><div id="viajes-progress" class="progress-bar"></div></div>`;
+
+            const pct = meta > 0 ? Math.min(100, (ganado/meta)*100) : 0;
+            requestAnimationFrame(()=>{
+                const bar = document.getElementById('viajes-progress');
+                if (bar) bar.style.width = pct.toFixed(0) + '%';
+            });
+        }
+
+        function estimarTasaViajesHora() {
+            const ventana = Math.max(parseInt(document.getElementById('viajes-ventana')?.value) || 10, 2);
+            if (viajeTimestamps.length >= 2) {
+                const slice = viajeTimestamps.slice(-ventana);
+                if (slice.length >= 2) {
+                    const inicio = slice[0];
+                    const fin = slice[slice.length - 1];
+                    const minutos = Math.max((fin - inicio) / 60000, 0.1);
+                    const vph = (slice.length - 1) / (minutos / 60);
+                    if (isFinite(vph) && vph > 0) return vph;
+                }
+            }
+            const gananciaHora = parseFloat(document.getElementById('ganancia-hora').textContent.replace(/[^0-9]/g,'')) || 0;
+            const ganado = parseFloat(document.getElementById('ganancia-dia').textContent.replace(/[^0-9]/g,'')) || 0;
+            const promedioPorViaje = contadorViajes > 0 ? (ganado/contadorViajes) : 0;
+            const vphFallback = promedioPorViaje > 0 ? (gananciaHora / promedioPorViaje) : 0;
+            return vphFallback > 0 && isFinite(vphFallback) ? vphFallback : 0;
+        }
+
+        // ---- CALCULADORA DE INVERSIONES ----
+        function calcularInversiones() {
+            const auto = parseFloat(document.getElementById('inv-auto').value) || 0;
+            const gnc = parseFloat(document.getElementById('inv-gnc').value) || 0;
+            const seguro = parseFloat(document.getElementById('inv-seguro').value) || 0; // mensual extra
+            const ahorroDia = parseFloat(document.getElementById('inv-ahorro-dia').value) || 0;
+
+            const netoDia = parseFloat(document.getElementById('ganancia-dia').textContent.replace(/[^0-9]/g,'')) || 0;
+            const netoMes = netoDia * 4.33;
+
+            const paybackAutoMeses = auto > 0 && netoMes > 0 ? (auto / netoMes) : Infinity;
+            const paybackGncDias = gnc > 0 && ahorroDia > 0 ? (gnc / ahorroDia) : Infinity;
+            const justificaSeguro = seguro > 0 ? (ahorroDia*30 >= seguro) : false;
+
+            document.getElementById('inv-output').innerHTML = `
+                ¿Auto nuevo? Recupero estimado: <strong>${isFinite(paybackAutoMeses)? paybackAutoMeses.toFixed(1)+' meses':'N/A'}</strong><br>
+                ¿GNC? Se paga en <strong>${isFinite(paybackGncDias)? paybackGncDias.toFixed(0)+' días':'N/A'}</strong><br>
+                ¿Seguro premium? ${justificaSeguro? '<strong>Conviene</strong>':'<strong>No conviene</strong>'}
+            `;
+        }
+
+        // ---- DESAFÍO DIARIO ----
+        function actualizarDesafio() {
+            const meta = parseFloat(document.getElementById('desafio-meta').value) || 0;
+            const horas = parseFloat(document.getElementById('desafio-horas').value) || 0;
+            const ganado = parseFloat(document.getElementById('ganancia-dia').textContent.replace(/[^0-9]/g,'')) || 0;
+            const pct = meta > 0 ? Math.round((ganado/meta)*100) : 0;
+            const faltante = Math.max(meta - ganado, 0);
+            const gananciaHora = parseFloat(document.getElementById('ganancia-hora').textContent.replace(/[^0-9]/g,'')) || 0;
+            const ciudad = getCiudadSeleccionada() || 'Buenos Aires';
+            const zonas = (zonasArgentina[ciudad]?.premium || []).slice(0,2).map(z=>z.nombre);
+
+            const promPorViaje = contadorViajes > 0 ? (ganado/contadorViajes) : 0;
+            const viajesRestantes = promPorViaje > 0 ? Math.ceil(faltante / promPorViaje) : 0;
+            const vph = estimarTasaViajesHora();
+            const horasEstimadas = vph > 0 ? (viajesRestantes / vph) : (gananciaHora > 0 ? (faltante / gananciaHora) : 0);
+
+            document.getElementById('desafio-output').innerHTML = `
+                Meta: ${currencyFormatter.format(meta)} en ${horas} horas<br>
+                Progreso: ${currencyFormatter.format(ganado)} (${pct}%)<br>
+                Faltante: ${currencyFormatter.format(faltante)}<br>
+                Plan: ${viajesRestantes} viajes más en zona premium (${zonas.join(', ')})<br>
+                Tiempo estimado: ${horasEstimadas.toFixed(1)} horas (a ${vph.toFixed(2)} viajes/h)
+            `;
+        }
+
+        function construirAlertasDeCiudad(ciudad) {
+            const data = zonasArgentina[ciudad];
+            if (!data || !data.horarios) return [];
+            const resultados = [];
+            for (const [zona, rangos] of Object.entries(data.horarios)) {
+                rangos.forEach(rango => {
+                    const [ini, fin] = rango.split('-');
+                    resultados.push({ zona, inicio: ini, fin: fin });
+                });
+            }
+            return resultados;
+        }
+
+        function horaActualStr() {
+            const d = new Date();
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            return `${hh}:${mm}`;
+        }
+
+        function estaEnRango(hora, inicio, fin) {
+            // formato HH:MM 24h; soporta rangos que cruzan medianoche
+            const toMin = (h) => { const [H,M]=h.split(':').map(Number); return H*60+M; };
+            const t = toMin(hora), a = toMin(inicio), b = toMin(fin);
+            return a <= b ? (t >= a && t <= b) : (t >= a || t <= b);
+        }
+
+        function actualizarAlertasUI(lista) {
+            const cont = document.getElementById('alerts-list');
+            if (!lista.length) {
+                cont.innerHTML = '<div class="alerts-card"><div class="alerts-title">Sin datos</div><div>No hay horarios configurados para esta ciudad.</div></div>';
+                return;
+            }
+            cont.innerHTML = lista.map(item => `
+                <div class="alerts-card">
+                    <div class="alerts-title">${item.zona}</div>
+                    <div>Horario pico: ${item.inicio} - ${item.fin}</div>
+                </div>
+            `).join('');
+        }
+
+        function revisarYNotificar(alertas) {
+            const ahora = horaActualStr();
+            alertas.forEach(a => {
+                if (estaEnRango(ahora, a.inicio, a.fin)) {
+                    notificar(`🔥 Horario premium en ${a.zona} (${a.inicio}-${a.fin})`, 'Es un buen momento para operar en esta zona.');
+                }
+            });
+        }
+
+        function notificar(titulo, cuerpo) {
+            if ('Notification' in window) {
+                if (Notification.permission === 'granted') {
+                    new Notification(titulo, { body: cuerpo });
+                }
+            }
+        }
+
+        async function toggleAlertas() {
+            const btn = document.getElementById('btn-alerts-toggle');
+            const badge = document.getElementById('alerts-status');
+            if (!alertsEnabled) {
+                // activar
+                if ('Notification' in window && Notification.permission !== 'granted') {
+                    await Notification.requestPermission();
+                }
+                const ciudad = getCiudadSeleccionada();
+                if (!ciudad) {
+                    alert('Seleccioná o detectá una ciudad primero.');
+                    return;
+                }
+                const alertas = construirAlertasDeCiudad(ciudad);
+                actualizarAlertasUI(alertas);
+                revisarYNotificar(alertas); // chequeo inmediato
+                alertsTimer = setInterval(() => revisarYNotificar(alertas), 60 * 1000); // cada 1min
+                alertsEnabled = true;
+                btn.textContent = 'Desactivar';
+                badge.textContent = 'ON';
+                badge.classList.remove('idle');
+                badge.classList.add('live');
+            } else {
+                // desactivar
+                clearInterval(alertsTimer);
+                alertsEnabled = false;
+                btn.textContent = 'Activar';
+                badge.textContent = 'OFF';
+                badge.classList.remove('live');
+                badge.classList.add('idle');
+            }
+        }
+
+        // Base de datos de zonas premium por ciudad
+        const zonasArgentina = {
+            'Buenos Aires': {
+                premium: [
+                    { nombre: 'Puerto Madero', ganancia: 1400, multiplicador: 1.6 },
+                    { nombre: 'Palermo', ganancia: 1250, multiplicador: 1.4 },
+                    { nombre: 'Belgrano', ganancia: 1180, multiplicador: 1.35 },
+                    { nombre: 'Recoleta', ganancia: 1150, multiplicador: 1.3 },
+                    { nombre: 'Las Cañitas', ganancia: 1100, multiplicador: 1.25 },
+                    { nombre: 'Villa Crespo', ganancia: 950, multiplicador: 1.1 }
+                ],
+                horarios: {
+                    'Puerto Madero': ['7:00-9:30', '12:00-14:00', '18:30-22:00'],
+                    'Palermo': ['7:30-9:00', '12:30-15:00', '19:00-23:00'],
+                    'Belgrano': ['7:00-9:00', '12:00-14:30', '18:00-21:30']
+                },
+                zonasBajas: ['La Boca', 'Barracas', 'Constitución']
+            },
+            'Córdoba': {
+                premium: [
+                    { nombre: 'Nueva Córdoba', ganancia: 950, multiplicador: 1.3 },
+                    { nombre: 'Centro', ganancia: 900, multiplicador: 1.2 },
+                    { nombre: 'Cerro de las Rosas', ganancia: 850, multiplicador: 1.15 },
+                    { nombre: 'Alto Palermo', ganancia: 800, multiplicador: 1.1 }
+                ],
+                horarios: {
+                    'Nueva Córdoba': ['7:00-9:00', '12:00-14:00', '19:00-22:00'],
+                    'Centro': ['7:30-9:30', '12:30-14:30', '18:30-21:30']
+                },
+                zonasBajas: ['San Vicente', 'Arguello']
+            },
+            'Rosario': {
+                premium: [
+                    { nombre: 'Centro', ganancia: 850, multiplicador: 1.25 },
+                    { nombre: 'Pichincha', ganancia: 800, multiplicador: 1.2 },
+                    { nombre: 'Fisherton', ganancia: 750, multiplicador: 1.15 },
+                    { nombre: 'Echesortu', ganancia: 700, multiplicador: 1.1 }
+                ],
+                horarios: {
+                    'Centro': ['7:00-9:00', '12:00-14:00', '18:30-21:30'],
+                    'Pichincha': ['7:30-9:30', '12:30-14:30', '19:00-22:00']
+                },
+                zonasBajas: ['Empalme Graneros', 'La Tablada']
+            },
+            'Mendoza': {
+                premium: [
+                    { nombre: 'Ciudad Centro', ganancia: 800, multiplicador: 1.3 },
+                    { nombre: 'Las Heras', ganancia: 750, multiplicador: 1.2 },
+                    { nombre: 'Godoy Cruz', ganancia: 700, multiplicador: 1.15 },
+                    { nombre: 'Maipú', ganancia: 650, multiplicador: 1.1 }
+                ],
+                horarios: {
+                    'Ciudad Centro': ['7:00-9:00', '12:00-14:00', '19:00-21:30'],
+                    'Las Heras': ['7:30-9:30', '12:30-14:30', '18:30-21:00']
+                },
+                zonasBajas: ['Luján de Cuyo', 'Tupungato']
+            },
+            'Salta': {
+                premium: [
+                    { nombre: 'Centro Histórico', ganancia: 700, multiplicador: 1.25 },
+                    { nombre: 'Nueva Salta', ganancia: 650, multiplicador: 1.15 },
+                    { nombre: 'Tres Cerritos', ganancia: 600, multiplicador: 1.1 }
+                ],
+                horarios: {
+                    'Centro Histórico': ['7:00-9:00', '12:00-14:00', '19:00-21:30']
+                },
+                zonasBajas: ['Villa San Antonio', 'Cerrillos']
+            }
+        };
+
+        function detectarUbicacion() {
+            const btn = document.getElementById('detectar-ubicacion');
+            btn.textContent = '📍 Detectando...';
+            btn.disabled = true;
+
+            const isSecure = window.isSecureContext || location.hostname === 'localhost';
+            if (!isSecure) {
+                alert('Para detectar ubicación, abrí la app en http://localhost (seguro). Intentaré igualmente con tu IP.');
+            }
+
+            if (!('geolocation' in navigator)) {
+                // Fallback IP
+                detectarPorIP(btn);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords;
+                    const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=es`;
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    const cruda = data.city || data.locality || data.principalSubdivision || '';
+                    const ciudad = mapearCiudadDataset(cruda);
+                    if (ciudad) {
+                        document.getElementById('ciudad-detectada').textContent = `${ciudad} (aprox.)`;
+                        document.getElementById('ubicacion-actual').classList.remove('hidden');
+                        cargarZonasPremium(ciudad);
+                        analizarZonaActual(ciudad);
+                        mostrarComparacionZonas(ciudad);
+                        mostrarHorariosOptimos(ciudad);
+                        aplicarCombustiblePorCiudad(ciudad);
+                        btn.textContent = '✅ Ubicación Detectada';
+                    } else {
+                        // Si no matchea, mostrar selector sugerido
+                        alert(`Detectamos: ${cruda}. Seleccioná tu ciudad.`);
+                        mostrarSelectorCiudad();
+                        btn.textContent = '📍 Seleccionar Ciudad';
+                        btn.disabled = false;
+                    }
+                } catch (e) {
+                    detectarPorIP(btn);
+                }
+            }, () => detectarPorIP(btn), { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 });
+        }
+
+        async function detectarPorIP(btn) {
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                const cruda = data.city || data.region || '';
+                const ciudad = mapearCiudadDataset(cruda);
+                if (ciudad) {
+                    document.getElementById('ciudad-detectada').textContent = `${ciudad} (por IP)`;
+                    document.getElementById('ubicacion-actual').classList.remove('hidden');
+                    cargarZonasPremium(ciudad);
+                    analizarZonaActual(ciudad);
+                    mostrarComparacionZonas(ciudad);
+                    mostrarHorariosOptimos(ciudad);
+                    aplicarCombustiblePorCiudad(ciudad);
+                    btn.textContent = '✅ Ubicación Detectada';
+                } else {
+                    mostrarSelectorCiudad();
+                    btn.textContent = '📍 Seleccionar Ciudad';
+                    btn.disabled = false;
+                }
+            } catch {
+                mostrarSelectorCiudad();
+                btn.textContent = '📍 Seleccionar Ciudad';
+                btn.disabled = false;
+            }
+        }
+
+        function normalizarTexto(t) {
+            return (t || '').toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+        }
+
+        function mapearCiudadDataset(nombreCrudo) {
+            const n = normalizarTexto(nombreCrudo);
+            const alias = {
+                'caba': 'Buenos Aires',
+                'ciudad autonoma de buenos aires': 'Buenos Aires',
+                'buenos aires': 'Buenos Aires',
+                'autonomous city of buenos aires': 'Buenos Aires',
+                'cordoba': 'Córdoba',
+                'rosario': 'Rosario',
+                'mendoza': 'Mendoza',
+                'salta': 'Salta'
+            };
+            for (const key in alias) {
+                if (n.includes(key)) return alias[key];
+            }
+            // Coincidencia directa por claves del dataset
+            const keys = Object.keys(zonasArgentina);
+            for (const ciudad of keys) {
+                if (normalizarTexto(ciudad) === n) return ciudad;
+            }
+            return '';
+        }
+
+        // Ajuste de combustible por ciudad (simplificado)
+        function aplicarCombustiblePorCiudad(ciudad) {
+            const preciosPorCiudad = {
+                'Buenos Aires': 850,
+                'Córdoba': 820,
+                'Rosario': 810,
+                'Mendoza': 800,
+                'Salta': 780
+            };
+            const precio = preciosPorCiudad[ciudad];
+            const input = document.getElementById('precio-nafta');
+            if (input && typeof precio === 'number') {
+                input.value = String(precio);
+                calcular();
+                actualizarComparador();
+            }
+        }
+
+        function mostrarSelectorCiudad() {
+            const container = document.querySelector('.ubicacion-detector');
+            container.innerHTML = `
+                <h3 style="color: white; margin-bottom: 15px;">¿En qué ciudad trabajás?</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                    ${Object.keys(zonasArgentina).map(ciudad => 
+                        `<button onclick="mostrarAnalisisUbicacion('${ciudad}')" class="ciudad-btn">${ciudad}</button>`
+                    ).join('')}
+                </div>
+            `;
+        }
+
+        function mostrarAnalisisUbicacion(ciudad) {
+            document.getElementById('ciudad-detectada').textContent = ciudad;
+            document.getElementById('ubicacion-actual').classList.remove('hidden');
+            cargarZonasPremium(ciudad);
+            analizarZonaActual(ciudad);
+            mostrarComparacionZonas(ciudad);
+            mostrarHorariosOptimos(ciudad);
+            // Propagar ubicación al resto de herramientas
+            try { actualizarComparador(); } catch {}
+            try { optimizarPlan(); } catch {}
+            try { actualizarDesafio(); } catch {}
+            try { aplicarCombustiblePorCiudad(ciudad); } catch {}
+        }
+
+        function cargarZonasPremium(ciudad) {
+            const zonasPremiumContainer = document.getElementById('zonas-premium-list');
+            const zonasCiudad = zonasArgentina[ciudad];
+            
+            if (!zonasCiudad) {
+                zonasPremiumContainer.innerHTML = '<p>No hay datos disponibles para esta ciudad</p>';
+                return;
+            }
+            
+            let html = '';
+            zonasCiudad.premium.forEach((zona, index) => {
+                const posicion = index + 1;
+                html += `
+                    <div class="zona-premium-item" onclick="seleccionarZona('${ciudad}', '${zona.nombre}')">
+                        <div>
+                            <div class="zona-nombre-premium">#${posicion} ${zona.nombre}</div>
+                            <div style="font-size: 0.8rem; color: #666;">
+                                Multiplicador: ${zona.multiplicador}x
+                            </div>
+                        </div>
+                        <div class="zona-ganancia">$${zona.ganancia}/hora</div>
+                    </div>
+                `;
+            });
+            
+            html += '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">';
+            html += '<h4 style="color: #ff4757; font-size: 0.9rem; margin-bottom: 10px;">⚠️ Zonas de Bajo Rendimiento:</h4>';
+            
+            zonasCiudad.zonasBajas.forEach(zonaBaja => {
+                html += `
+                    <div style="background: #ffebee; color: #c62828; padding: 8px 12px; border-radius: 5px; margin-bottom: 5px; font-size: 0.9rem;">
+                        ${zonaBaja} - Ganancia estimada: 40-60% menos
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            zonasPremiumContainer.innerHTML = html;
+        }
+
+        function analizarZonaActual(ciudad) {
+            const analisisContainer = document.getElementById('analisis-zona-actual');
+            const zonasCiudad = zonasArgentina[ciudad];
+            
+            if (!zonasCiudad) return;
+            
+            const zonasDisponibles = [...zonasCiudad.premium, ...zonasCiudad.zonasBajas.map(z => ({nombre: z, ganancia: 400, multiplicador: 0.6}))];
+            const zonaActual = zonasDisponibles[Math.floor(Math.random() * zonasDisponibles.length)];
+            
+            const mejorZona = zonasCiudad.premium[0];
+            const diferencia = mejorZona.ganancia - (zonaActual.ganancia || 400);
+            const porcentajeDiferencia = Math.round((diferencia / (zonaActual.ganancia || 400)) * 100);
+            
+            let estatusColor = '#00ff88';
+            let estatusTexto = 'Óptima';
+            let recomendacion = '¡Estás en una zona excelente! Mantente aquí durante los horarios pico.';
+            
+            if (porcentajeDiferencia > 50) {
+                estatusColor = '#ff4757';
+                estatusTexto = 'Baja rentabilidad';
+                recomendacion = `Considerá moverte a ${mejorZona.nombre} para ganar $${diferencia} más por hora.`;
+            } else if (porcentajeDiferencia > 20) {
+                estatusColor = '#ffa502';
+                estatusTexto = 'Mejorable';
+                recomendacion = `Podrías ganar $${diferencia} más por hora en ${mejorZona.nombre}.`;
+            }
+            
+            analisisContainer.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <strong>Zona Actual:</strong><br>
+                        <span style="font-size: 1.1rem;">${zonaActual.nombre}</span>
+                    </div>
+                    <div>
+                        <strong>Estatus:</strong><br>
+                        <span style="color: ${estatusColor}; font-weight: bold;">${estatusTexto}</span>
+                    </div>
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; border-left: 4px solid #2196f3;">
+                    <strong>💡 Recomendación:</strong><br>
+                    ${recomendacion}
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <strong>Ganancia actual estimada:</strong> 
+                    <span style="color: #667eea; font-weight: bold; font-size: 1.1rem;">
+                        $${zonaActual.ganancia || 400}/hora
+                    </span>
+                </div>
+            `;
+        }
+
+        function mostrarComparacionZonas(ciudad) {
+            const comparacionContainer = document.getElementById('comparacion-ganancias-zonas');
+            const zonasCiudad = zonasArgentina[ciudad];
+            
+            if (!zonasCiudad) return;
+            
+            let html = '';
+            const gananciaPrimera = zonasCiudad.premium[0].ganancia;
+            
+            zonasCiudad.premium.forEach((zona, index) => {
+                const diferenciaPorcentaje = index === 0 ? 0 : 
+                    Math.round(((gananciaPrimera - zona.ganancia) / zona.ganancia) * 100);
+                
+                const claseEstilo = diferenciaPorcentaje === 0 ? '' : 'negativa';
+                const signo = diferenciaPorcentaje === 0 ? '' : '-';
+                
+                html += `
+                    <div class="zona-comparacion" onclick="navegarAZona('${zona.nombre}', ${zona.ganancia})">
+                        <div class="zona-nombre">${zona.nombre}</div>
+                        <div class="zona-potencial">$${zona.ganancia}/hora</div>
+                        <div class="zona-diferencia ${claseEstilo}">
+                            ${diferenciaPorcentaje === 0 ? 'TOP' : `${signo}${diferenciaPorcentaje}%`}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            comparacionContainer.innerHTML = html;
+        }
+
+        function mostrarHorariosOptimos(ciudad) {
+            const horariosContainer = document.getElementById('horarios-optimizados');
+            const zonasCiudad = zonasArgentina[ciudad];
+            
+            if (!zonasCiudad || !zonasCiudad.horarios) {
+                horariosContainer.innerHTML = '<p>No hay datos de horarios para esta ciudad</p>';
+                return;
+            }
+            
+            let html = '';
+            Object.entries(zonasCiudad.horarios).forEach(([zona, horarios]) => {
+                html += `
+                    <div class="horario-zona-item">
+                        <div class="horario-zona-titulo">🔥 ${zona}</div>
+                        <div class="horario-zona-detalle">
+                            <strong>Horarios pico:</strong> ${horarios.join(' • ')}
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.8rem; color: #666;">
+                            💰 Ganancia máxima en estos horarios
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <strong>💡 Consejos de horarios:</strong><br>
+                    • Mañanas (7-9): Ejecutivos y oficinistas<br>
+                    • Mediodías (12-14): Almuerzos de negocios<br>
+                    • Noches (19-22): Vida nocturna y cenas<br>
+                    • Viernes/Sábados: +25% de demanda promedio
+                </div>
+            `;
+            
+            horariosContainer.innerHTML = html;
+        }
+
+        function seleccionarZona(ciudad, nombreZona) {
+            const zona = zonasArgentina[ciudad].premium.find(z => z.nombre === nombreZona);
+            if (!zona) return;
+            mostrarModalZona(ciudad, zona);
+        }
+
+        function mostrarModalZona(ciudad, zona) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.7);
+                display: flex; justify-content: center; align-items: center;
+                z-index: 1000;
+            `;
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="color: #667eea; margin: 0;">📍 ${zona.nombre}</h2>
+                        <button onclick="this.closest('div').parentNode.remove()" style="background: #ff4757; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">×</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div style="text-align: center; padding: 15px; background: #f8f9ff; border-radius: 10px;">
+                            <div style="font-size: 2rem; color: #00ff88; font-weight: bold;">$${zona.ganancia}</div>
+                            <div style="color: #666;">Ganancia/hora</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f8f9ff; border-radius: 10px;">
+                            <div style="font-size: 2rem; color: #667eea; font-weight: bold;">${zona.multiplicador}x</div>
+                            <div style="color: #666;">Multiplicador</div>
+                        </div>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <strong>🚀 Proyección diaria:</strong><br>
+                        • 8 horas: $${zona.ganancia * 8}<br>
+                        • Con multiplicador: $${Math.round(zona.ganancia * 8 * zona.multiplicador)}<br>
+                        • Ganancia extra: $${Math.round(zona.ganancia * 8 * (zona.multiplicador - 1))}
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        <strong>⏰ Mejores horarios en ${zona.nombre}:</strong><br>
+                        ${zonasArgentina[ciudad].horarios[zona.nombre] ? zonasArgentina[ciudad].horarios[zona.nombre].join(' • ') : 'Consultar horarios locales'}
+                    </div>
+                    <button onclick="navegarAZona('${zona.nombre}', ${zona.ganancia}); this.closest('div').parentNode.remove();" style="width: 100%; background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none; padding: 15px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 1.1rem;">
+                        🧭 Navegar a ${zona.nombre}
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function navegarAZona(nombreZona, ganancia) {
+            const ciudad = getCiudadSeleccionada() || '';
+            const query = encodeURIComponent(`${nombreZona}${ciudad ? ', ' + ciudad : ''}, Argentina`);
+            const gmaps = `https://www.google.com/maps/search/?api=1&query=${query}`;
+            const waze = `https://waze.com/ul?q=${query}`;
+            
+            // Mostrar banner con opciones reales
+            mostrarBannerNavegacion(nombreZona, ganancia, gmaps, waze);
+            guardarZonaSeleccionada(nombreZona, ganancia);
+        }
+
+        function mostrarBannerNavegacion(zona, ganancia, gmaps, waze) {
+            let banner = document.getElementById('nav-banner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'nav-banner';
+                banner.className = 'nav-banner';
+                banner.innerHTML = `
+                    <div class="title">🧭 Navegar a <span id="nb-zona"></span></div>
+                    <div>Ganancia estimada: <strong id="nb-ganancia"></strong>/hora</div>
+                    <div class="actions">
+                        <button id="nb-google">Abrir en Google Maps</button>
+                        <button id="nb-waze" class="secondary">Abrir en Waze</button>
+                        <button id="nb-cerrar" class="secondary">Cerrar</button>
+                    </div>
+                `;
+                document.body.appendChild(banner);
+            }
+            document.getElementById('nb-zona').textContent = zona;
+            document.getElementById('nb-ganancia').textContent = currencyFormatter.format(ganancia);
+            document.getElementById('nb-google').onclick = () => window.open(gmaps, '_blank');
+            document.getElementById('nb-waze').onclick = () => window.open(waze, '_blank');
+            document.getElementById('nb-cerrar').onclick = () => banner.style.display = 'none';
+            banner.style.display = 'block';
+        }
+
+        function guardarZonaSeleccionada(zona, ganancia) {
+            const historialZonas = JSON.parse(localStorage.getItem('historialZonas') || '[]');
+            historialZonas.push({ zona, ganancia, fecha: new Date().toISOString(), timestamp: Date.now() });
+            if (historialZonas.length > 50) {
+                historialZonas.splice(0, historialZonas.length - 50);
+            }
+            localStorage.setItem('historialZonas', JSON.stringify(historialZonas));
+            actualizarEstadisticasZonas();
+        }
+
+        function actualizarEstadisticasZonas() {
+            const historial = JSON.parse(localStorage.getItem('historialZonas') || '[]');
+            if (historial.length === 0) return;
+            const zonasFrecuentes = {};
+            let gananciaTotal = 0;
+            historial.forEach(registro => {
+                zonasFrecuentes[registro.zona] = (zonasFrecuentes[registro.zona] || 0) + 1;
+                gananciaTotal += registro.ganancia;
+            });
+            const zonaFavorita = Object.entries(zonasFrecuentes).sort(([,a],[,b]) => b - a)[0];
+            const gananciaProm = Math.round(gananciaTotal / historial.length);
+            if (historial.length % 10 === 0) {
+                mostrarNotificacionEstadisticas(zonaFavorita[0], gananciaProm, historial.length);
+            }
+        }
+
+        function mostrarNotificacionEstadisticas(zonaFav, ganProm, totalVisitas) {
+            const notif = document.createElement('div');
+            notif.style.cssText = `
+                position: fixed; top: 20px; right: 20px;
+                background: linear-gradient(45deg, #4CAF50, #45a049);
+                color: white; padding: 15px 20px; border-radius: 10px;
+                z-index: 1001; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 300px;`;
+            notif.innerHTML = `
+                <strong>📊 Estadísticas Actualizadas</strong><br>
+                🏆 Zona favorita: ${zonaFav}<br>
+                💰 Ganancia promedio: $${ganProm}/hora<br>
+                📍 Zonas visitadas: ${totalVisitas}`;
+            document.body.appendChild(notif);
+            setTimeout(() => { notif.remove(); }, 5000);
+        }
+
+        function agregarEstilosCiudad() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .ciudad-btn { background: white; color: #667eea; border: 2px solid transparent; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+                .ciudad-btn:hover { background: #667eea; color: white; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3); }
+                .hidden { display: none !important; }
+                .zona-premium-item:hover { transform: translateX(5px); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+                .zona-comparacion:hover { background: #f0f8ff !important; cursor: pointer; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            agregarEstilosCiudad();
+            // Re-enlazar botones por si el DOM cambió
+            setTimeout(() => {
+                const btnDetectar = document.getElementById('detectar-ubicacion');
+                if (btnDetectar) btnDetectar.addEventListener('click', detectarUbicacion);
+                const btnAlerts = document.getElementById('btn-alerts-toggle');
+                if (btnAlerts) btnAlerts.addEventListener('click', toggleAlertas);
+                const btnCalcular = document.getElementById('btn-calcular');
+                if (btnCalcular) btnCalcular.addEventListener('click', () => { calcular(); actualizarComparador(); });
+                const btnOpt = document.getElementById('btn-opt-calcular');
+                if (btnOpt) btnOpt.addEventListener('click', optimizarPlan);
+                const sum = document.getElementById('btn-viaje-sumar');
+                const res = document.getElementById('btn-viaje-restar');
+                const rst = document.getElementById('btn-viaje-reset');
+                if (sum) sum.addEventListener('click', () => { actualizarContadorViajes(1); actualizarDesafio(); });
+                if (res) res.addEventListener('click', () => { actualizarContadorViajes(-1); actualizarDesafio(); });
+                if (rst) rst.addEventListener('click', () => { contadorViajes = 0; viajeTimestamps = []; actualizarContadorViajes(0); actualizarDesafio(); });
+                const inv = document.getElementById('btn-inv-calcular');
+                if (inv) inv.addEventListener('click', calcularInversiones);
+                const dMeta = document.getElementById('desafio-meta');
+                const dHoras = document.getElementById('desafio-horas');
+                if (dMeta) dMeta.addEventListener('input', actualizarDesafio);
+                if (dHoras) dHoras.addEventListener('input', actualizarDesafio);
+            }, 0);
+            // Ocultar la calculadora hasta login
+            const calc = document.querySelector('.container');
+            if (calc) calc.style.display = 'none';
+        });
+
+        // Botones
+        document.getElementById('btn-calcular').addEventListener('click', calcular);
+        document.getElementById('btn-exportar-pdf').addEventListener('click', exportarPDF);
+        document.getElementById('btn-compartir').addEventListener('click', compartir);
+
+        // Cálculo automático cuando cambian los valores
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                if (document.getElementById('ganancia-bruta').value) {
+                    calcular();
+                    actualizarComparador();
+                }
+            });
+        });
+
+        // Cálculo inicial
+        window.onload = () => {
+            setTimeout(calcular, 300);
+            setTimeout(actualizarComparador, 350);
+        };
+        
+        // Eventos herramientas
+        document.getElementById('btn-opt-calcular').addEventListener('click', optimizarPlan);
+        document.getElementById('btn-viaje-sumar').addEventListener('click', () => { actualizarContadorViajes(1); actualizarDesafio(); });
+        document.getElementById('btn-viaje-restar').addEventListener('click', () => { actualizarContadorViajes(-1); actualizarDesafio(); });
+        document.getElementById('btn-viaje-reset').addEventListener('click', () => { contadorViajes = 0; actualizarContadorViajes(0); actualizarDesafio(); });
+        document.getElementById('btn-inv-calcular').addEventListener('click', calcularInversiones);
+        document.getElementById('desafio-meta').addEventListener('input', actualizarDesafio);
+        document.getElementById('desafio-horas').addEventListener('input', actualizarDesafio);
+    </script>
+    </body>
+    </html>
+
+
