@@ -55,10 +55,7 @@
             Continuar con Google
         </button>
 
-        <div class="alternative-login">
-            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">¿Problemas con Google?</p>
-            <button class="alt-btn" onclick="iniciarGoogleAuthPopup()">Intentar con ventana emergente</button>
-        </div>
+        
 
         <div class="loading" id="loadingSpinner">
             <div class="spinner"></div>
@@ -179,35 +176,7 @@
             }
         }
 
-        // Función alternativa para popup (cuando redirect no funciona)
-        async function iniciarGoogleAuthPopup() {
-            try {
-                mostrarCargando(true);
-                ocultarMensajes();
-
-                if (window.firebase && firebase.auth) {
-                    const auth = firebase.auth();
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    provider.addScope('email');
-                    provider.addScope('profile');
-                    
-                    const result = await auth.signInWithPopup(provider);
-                    const cred = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-                    const googleIdToken = cred && cred.idToken;
-                    
-                    if (googleIdToken) {
-                        await handleGoogleAuth({ credential: googleIdToken });
-                    }
-                } else {
-                    throw new Error('Firebase Auth no está disponible');
-                }
-
-            } catch (error) {
-                console.error('Error en popup login:', error);
-                mostrarError('Error en login con popup: ' + error.message);
-                mostrarCargando(false);
-            }
-        }
+        
 
         // Manejar la respuesta de Google Auth
         async function handleGoogleAuth(response) {
