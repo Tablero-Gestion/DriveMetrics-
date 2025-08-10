@@ -556,6 +556,8 @@
                 </div>
                 <button type="submit">🚀 Comenzar Prueba Gratis</button>
             </form>
+            <div style="margin:14px 0; color:#64748b; font-weight:700;">o</div>
+            <button id="google-register-btn" class="google-btn" style="width:100%">Continuar con Google</button>
             
             <p style="margin-top:10px;"><a onclick="mostrarLogin()">¿Ya tenés cuenta? Ingresá acá</a></p>
         </div>
@@ -2042,6 +2044,8 @@ Calculá las tuyas en: uber-rappi-calculator.com`;
                 if (gbtn) gbtn.addEventListener('click', iniciarGoogleAuth);
                 const upg = document.getElementById('upgrade-btn');
                 if (upg) upg.addEventListener('click', abrirModalPago);
+                const grbtn = document.getElementById('google-register-btn');
+                if (grbtn) grbtn.addEventListener('click', iniciarGoogleAuth);
             }, 0);
             // Ocultar la calculadora hasta login
             const calc = document.querySelector('.container');
