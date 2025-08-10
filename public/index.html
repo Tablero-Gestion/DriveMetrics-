@@ -3,269 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DriveMetrics - Login</title>
+    <title>DriveMetrics - Dashboard</title>
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .login-container { background: white; padding: 2.5rem; border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); text-align: center; max-width: 400px; width: 90%; animation: slideIn 0.6s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px);} to { opacity: 1; transform: translateY(0);} }
-        .logo { font-size: 2.5rem; color: #667eea; margin-bottom: 1rem; }
-        .title { font-size: 1.8rem; color: #333; margin-bottom: 0.5rem; font-weight: 600; }
-        .subtitle { color: #666; margin-bottom: 2rem; font-size: 0.95rem; }
-        .google-btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; background: #4285f4; color: white; border: none; padding: 14px 24px; border-radius: 50px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; width: 100%; margin-bottom: 1rem; }
-        .google-btn:hover { background: #3367d6; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(66, 133, 244, 0.3); }
-        .google-btn:active { transform: translateY(0); }
-        .google-icon { width: 20px; height: 20px; background: white; border-radius: 3px; padding: 2px; }
-        .alternative-login { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee; }
-        .alt-btn { background: transparent; border: 2px solid #667eea; color: #667eea; padding: 12px 20px; border-radius: 50px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; width: 100%; margin: 0.5rem 0; }
-        .alt-btn:hover { background: #667eea; color: white; }
-        .loading { display: none; margin-top: 1rem; }
-        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
-        .error-message { background: #fee; border: 1px solid #fcc; color: #c33; padding: 12px; border-radius: 8px; margin-top: 1rem; display: none; font-size: 0.9rem; }
-        .success-message { background: #efe; border: 1px solid #cfc; color: #3c3; padding: 12px; border-radius: 8px; margin-top: 1rem; display: none; font-size: 0.9rem; }
-        .container { display: none; }
-        .logged-in-container { display: none; background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); text-align: center; max-width: 500px; width: 90%; }
-        .user-info { margin-bottom: 2rem; }
-        .user-avatar { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem; display: block; }
-        .logout-btn { background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease; }
-        .logout-btn:hover { background: #c82333; transform: translateY(-1px); }
-        .continue-btn { background: #28a745; color: white; border: none; padding: 14px 30px; border-radius: 25px; cursor: pointer; font-size: 1rem; font-weight: 500; margin-right: 1rem; transition: all 0.3s ease; }
-        .continue-btn:hover { background: #218838; transform: translateY(-1px); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .loading-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity .5s ease; }
+        .loading-screen.hidden { opacity: 0; pointer-events: none; }
+        .loading-logo { font-size: 4rem; margin-bottom: 1rem; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        .loading-text { color: #fff; font-size: 1.2rem; margin-bottom: 2rem; }
+        .spinner { border: 4px solid rgba(255,255,255,.3); border-top: 4px solid #fff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+        .login-container { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; z-index:1000; transition: all .5s ease; }
+        .login-box { background:#fff; padding:2.5rem; border-radius:20px; box-shadow:0 20px 40px rgba(0,0,0,.2); text-align:center; max-width:420px; width:90%; transform:scale(.9); animation: scaleIn .5s ease forwards; }
+        @keyframes scaleIn { to { transform: scale(1);} }
+        .logo { font-size:2.5rem; color:#667eea; margin-bottom:1rem; }
+        .title { font-size:1.8rem; color:#333; margin-bottom:.5rem; font-weight:600; }
+        .subtitle { color:#666; margin-bottom:2rem; font-size:.95rem; }
+        .google-btn { display:inline-flex; align-items:center; justify-content:center; gap:12px; background:#4285f4; color:#fff; border:none; padding:16px 24px; border-radius:50px; font-size:1.1rem; font-weight:500; cursor:pointer; transition: all .3s ease; width:100%; margin-bottom:1rem; }
+        .google-btn:hover { background:#3367d6; transform: translateY(-2px); box-shadow:0 8px 25px rgba(66,133,244,.4); }
+        .google-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+        .google-icon { width:22px; height:22px; background:#fff; border-radius:4px; padding:3px; flex-shrink:0; }
+        .message { padding:12px; border-radius:8px; margin-top:1rem; font-size:.9rem; display:none; }
+        .error-message { background:#fee; border:1px solid #fcc; color:#c33; }
+        .success-message { background:#efe; border:1px solid #cfc; color:#3c3; }
+        .dashboard { opacity:0; pointer-events:none; transition:opacity .5s ease; min-height:100vh; padding:20px; }
+        .dashboard.active { opacity:1; pointer-events:all; }
+        .dashboard-header { background:#fff; padding:1rem 2rem; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.1); margin-bottom:2rem; display:flex; justify-content:space-between; align-items:center; }
+        .user-info { display:flex; align-items:center; gap:15px; }
+        .user-avatar { width:50px; height:50px; border-radius:50%; border:3px solid #667eea; }
+        .user-details h3 { margin:0; color:#333; font-size:1.1rem; }
+        .user-details p { margin:0; color:#666; font-size:.9rem; }
+        .logout-btn { background:#dc3545; color:#fff; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; font-size:.9rem; transition: all .3s ease; }
+        .logout-btn:hover { background:#c82333; transform: translateY(-1px); }
+        .dashboard-content { background:#fff; padding:2rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
+        .welcome-section { text-align:center; margin-bottom:3rem; }
+        .welcome-section h1 { color:#667eea; font-size:2.5rem; margin-bottom:1rem; }
+        .welcome-section p { color:#666; font-size:1.1rem; }
+        .calculator-section { background:#f8f9fa; padding:2rem; border-radius:12px; margin-top:2rem; border-left:4px solid #667eea; }
+        .calculator-section h2 { color:#667eea; margin-bottom:1rem; }
+        .hidden { display:none !important; }
+        .fade-in { animation: fadeIn .5s ease forwards; }
+        @keyframes fadeIn { from{opacity:0; transform:translateY(20px)} to{opacity:1; transform:translateY(0)} }
+        @media (max-width:768px){ .dashboard-header{flex-direction:column; gap:1rem} .user-info{justify-content:center} }
     </style>
 </head>
 <body>
-    <!-- Pantalla de Login -->
-    <div class="login-container" id="loginContainer">
-        <div class="logo">🚗</div>
-        <h1 class="title">DriveMetrics</h1>
-        <p class="subtitle">Inicia sesión para acceder a tu dashboard de métricas de conducción</p>
-        
-        <button class="google-btn" id="googleLoginBtn" onclick="iniciarGoogleAuth()">
-            <svg class="google-icon" viewBox="0 0 24 24">
-                <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Continuar con Google
-        </button>
-
-        <div class="loading" id="loadingSpinner">
-            <div class="spinner"></div>
-            <p style="margin-top: 0.5rem; color: #666;">Iniciando sesión...</p>
-        </div>
-
-        <div class="error-message" id="errorMessage"></div>
-        <div class="success-message" id="successMessage"></div>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">🚗</div>
+        <div class="loading-text">Cargando DriveMetrics...</div>
+        <div class="spinner"></div>
     </div>
 
-    <!-- Pantalla después del login exitoso -->
-    <div class="logged-in-container" id="loggedInContainer">
-        <div class="user-info">
-            <img class="user-avatar" id="userAvatar" src="" alt="Avatar">
-            <h2 id="userName"></h2>
-            <p id="userEmail" style="color: #666;"></p>
+    <div class="login-container hidden" id="loginContainer">
+        <div class="login-box">
+            <div class="logo">🚗</div>
+            <h1 class="title">DriveMetrics</h1>
+            <p class="subtitle">Inicia sesión para acceder a tu dashboard de métricas de conducción</p>
+            <button class="google-btn" id="googleLoginBtn" onclick="iniciarGoogleAuth()">
+                <svg class="google-icon" viewBox="0 0 24 24">
+                    <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continuar con Google
+            </button>
+            <div class="message error-message" id="errorMessage"></div>
+            <div class="message success-message" id="successMessage"></div>
         </div>
-        
-        <a class="continue-btn" href="/dashboard.html">Ir al Dashboard</a>
-        <button class="logout-btn" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+        <div class="dashboard-header">
+            <div class="user-info">
+                <img class="user-avatar" id="userAvatar" src="" alt="Avatar">
+                <div class="user-details">
+                    <h3 id="userName">Cargando...</h3>
+                    <p id="userEmail">Cargando...</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+        <div class="dashboard-content">
+            <div class="welcome-section">
+                <h1>¡Bienvenido a DriveMetrics!</h1>
+                <p>Tu dashboard personalizado está listo. Sesión iniciada correctamente.</p>
+            </div>
+            <div class="calculator-section">
+                <h2>📊 Tu Calculadora de Métricas</h2>
+                <p>Aquí puedes integrar tu calculadora existente de DriveMetrics.</p>
+                <div style="background:#fff; padding:1.5rem; border-radius:8px; margin-top:1rem;">
+                    <h3>Métricas de Conducción</h3>
+                    <p>Usuario autenticado: <span id="dashboardUserName">Cargando...</span></p>
+                    <p>Estado de sesión: <span style="color:green;">✅ Activa</span></p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyCFDb40oDXxQRG4PY0GAIaC8Ck7zS9tm0A",
-          authDomain: "drivemetrics-9ef78.firebaseapp.com",
-          projectId: "drivemetrics-9ef78",
-          storageBucket: "drivemetrics-9ef78.firebasestorage.app",
-          messagingSenderId: "151117015962",
-          appId: "1:151117015962:web:576aff049892be2760e823",
-          measurementId: "G-1T99LXNLSM"
-        };
         const GOOGLE_CLIENT_ID = '151117015962-qhq4at3nbja8q9rq7qvspcc0sunr113u.apps.googleusercontent.com';
+        const firebaseConfig = {
+            apiKey: 'AIzaSyCFDb40oDXxQRG4PY0GAIaC8Ck7zS9tm0A',
+            authDomain: 'drivemetrics-9ef78.firebaseapp.com',
+            projectId: 'drivemetrics-9ef78',
+            storageBucket: 'drivemetrics-9ef78.firebasestorage.app',
+            messagingSenderId: '151117015962',
+            appId: '1:151117015962:web:576aff049892be2760e823'
+        };
         let currentUser = null;
 
         document.addEventListener('DOMContentLoaded', async function() {
+            mostrarPantalla('loading');
             try {
+                await new Promise(r => setTimeout(r, 600));
                 if (window.firebase && !firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
                 }
-
-                await verificarSesionExistente();
-
-                if (window.firebase && firebase.auth) {
-                    firebase.auth().getRedirectResult()
-                        .then(async (result) => {
-                            if (result.credential) {
-                                const cred = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-                                const googleIdToken = cred && cred.idToken;
-                                if (googleIdToken) {
-                                    await handleGoogleAuth({ credential: googleIdToken });
-                                }
-                            }
-                        })
-                        .catch((error) => {
-                            console.error('Error en redirect:', error);
-                            mostrarError('Error al procesar el login: ' + error.message);
-                        });
+                const sesion = await verificarSesionExistente();
+                if (sesion) {
+                    await mostrarDashboard(sesion);
+                } else {
+                    const redirectHecho = await procesarRedirectResult();
+                    if (!redirectHecho) mostrarPantalla('login');
                 }
-            } catch (error) {
-                console.error('Error en inicialización:', error);
+            } catch(e) {
+                console.error(e); mostrarPantalla('login');
             }
         });
 
-        async function iniciarGoogleAuth() {
-            try {
-                mostrarCargando(true);
-                ocultarMensajes();
-
-                if (window.firebase && firebase.auth) {
+        async function iniciarGoogleAuth(){
+            const btn = document.getElementById('googleLoginBtn');
+            try{
+                btn.disabled = true; btn.textContent = 'Iniciando...';
+                if (window.firebase && firebase.auth){
                     const auth = firebase.auth();
                     const provider = new firebase.auth.GoogleAuthProvider();
-                    provider.addScope('email');
-                    provider.addScope('profile');
-                    await auth.signInWithRedirect(provider);
-                    return;
-                }
-
-                if (window.google && google.accounts) {
-                    google.accounts.id.initialize({
-                        client_id: GOOGLE_CLIENT_ID,
-                        callback: handleGoogleAuth,
-                        ux_mode: 'redirect',
-                        redirect_uri: window.location.href
-                    });
-                    google.accounts.id.prompt();
-                } else {
-                    throw new Error('Google Identity Services no está disponible');
-                }
-
-            } catch (error) {
-                console.error('Error en login:', error);
-                mostrarError('No se pudo iniciar el login con Google: ' + error.message);
-                mostrarCargando(false);
-            }
-        }
-
-        async function handleGoogleAuth(response) {
-            try {
-                mostrarCargando(true);
-                let userInfo = null;
-
-                if (response.user) {
-                    userInfo = {
-                        name: response.user.displayName,
-                        email: response.user.email,
-                        picture: response.user.photoURL,
-                        uid: response.user.uid
-                    };
-                } else if (response.credential) {
-                    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-                    userInfo = {
-                        name: payload.name,
-                        email: payload.email,
-                        picture: payload.picture,
-                        uid: payload.sub
-                    };
-                }
-
-                if (userInfo) {
-                    currentUser = userInfo;
-                    mostrarSesionIniciada(userInfo);
-                    mostrarExito('¡Login exitoso! Bienvenido ' + userInfo.name);
-                } else {
-                    throw new Error('No se pudo obtener información del usuario');
-                }
-
-            } catch (error) {
-                console.error('Error procesando auth:', error);
-                mostrarError('Error al procesar el login: ' + error.message);
-            } finally {
-                mostrarCargando(false);
-            }
-        }
-
-        async function verificarSesionExistente() {
-            if (window.firebase && firebase.auth) {
-                firebase.auth().onAuthStateChanged((user) => {
-                    if (user) {
-                        const userInfo = {
-                            name: user.displayName,
-                            email: user.email,
-                            picture: user.photoURL,
-                            uid: user.uid
-                        };
-                        currentUser = userInfo;
-                        mostrarSesionIniciada(userInfo);
+                    provider.addScope('email'); provider.addScope('profile'); provider.setCustomParameters({ prompt: 'select_account' });
+                    try{
+                        const result = await auth.signInWithPopup(provider);
+                        await manejarAutenticacionExitosa(result.user);
+                    }catch(err){
+                        if (err.code === 'auth/popup-blocked') { await auth.signInWithRedirect(provider); }
+                        else { throw err; }
                     }
+                } else { throw new Error('Firebase no está disponible'); }
+            }catch(err){ manejarErrorLogin(err); }
+            finally{ btn.disabled = false; btn.textContent = 'Continuar con Google'; }
+        }
+
+        async function procesarRedirectResult(){
+            if (!(window.firebase && firebase.auth)) return false;
+            try{
+                const result = await firebase.auth().getRedirectResult();
+                if (result && result.user){ await manejarAutenticacionExitosa(result.user); return true; }
+            }catch(err){ manejarErrorLogin(err); }
+            return false;
+        }
+
+        async function verificarSesionExistente(){
+            const saved = localStorage.getItem('drivemetrics_user');
+            if (saved){ try { return JSON.parse(saved); } catch{ localStorage.removeItem('drivemetrics_user'); } }
+            if (window.firebase && firebase.auth){
+                return new Promise((resolve)=>{
+                    const unsub = firebase.auth().onAuthStateChanged((user)=>{
+                        unsub(); resolve(user ? { id:user.uid, email:user.email, name:user.displayName, picture:user.photoURL, provider:'google' } : null);
+                    });
                 });
             }
+            return null;
         }
 
-        function mostrarSesionIniciada(userInfo) {
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('loggedInContainer').style.display = 'block';
-            document.getElementById('userName').textContent = userInfo.name;
-            document.getElementById('userEmail').textContent = userInfo.email;
-            document.getElementById('userAvatar').src = userInfo.picture || 'https://via.placeholder.com/80';
+        async function manejarAutenticacionExitosa(user){
+            const userData = { id:user.uid, email:user.email, name:user.displayName, picture:user.photoURL, provider:'google', loginTime:new Date().toISOString() };
+            localStorage.setItem('drivemetrics_user', JSON.stringify(userData));
+            currentUser = userData; await mostrarDashboard(userData);
         }
 
-        async function cerrarSesion() {
-            try {
-                if (window.firebase && firebase.auth) {
-                    await firebase.auth().signOut();
-                }
-                currentUser = null;
-                document.getElementById('loggedInContainer').style.display = 'none';
-                document.getElementById('loginContainer').style.display = 'block';
-                ocultarMensajes();
-                mostrarExito('Sesión cerrada correctamente');
-            } catch (error) {
-                console.error('Error al cerrar sesión:', error);
-                mostrarError('Error al cerrar sesión');
-            }
+        async function mostrarDashboard(userData){
+            document.getElementById('userAvatar').src = userData.picture || 'https://via.placeholder.com/50';
+            document.getElementById('userName').textContent = userData.name || 'Usuario';
+            document.getElementById('userEmail').textContent = userData.email || '';
+            document.getElementById('dashboardUserName') && (document.getElementById('dashboardUserName').textContent = userData.name || 'Usuario');
+            mostrarPantalla('dashboard');
         }
 
-        function mostrarCargando(mostrar) {
-            const loading = document.getElementById('loadingSpinner');
-            const btn = document.getElementById('googleLoginBtn');
-            if (mostrar) {
-                loading.style.display = 'block';
-                btn.disabled = true;
-                btn.style.opacity = '0.6';
-            } else {
-                loading.style.display = 'none';
-                btn.disabled = false;
-                btn.style.opacity = '1';
-            }
+        async function cerrarSesion(){
+            try{ if (window.firebase && firebase.auth) await firebase.auth().signOut(); }catch{}
+            localStorage.removeItem('drivemetrics_user'); currentUser=null; mostrarPantalla('login');
         }
 
-        function mostrarError(mensaje) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = mensaje;
-            errorDiv.style.display = 'block';
-            setTimeout(() => { errorDiv.style.display = 'none'; }, 5000);
+        function mostrarPantalla(tipo){
+            const loading = document.getElementById('loadingScreen');
+            const login = document.getElementById('loginContainer');
+            const dash = document.getElementById('dashboard');
+            loading.classList.add('hidden'); login.classList.add('hidden'); dash.classList.remove('active');
+            if (tipo==='loading') loading.classList.remove('hidden');
+            if (tipo==='login') login.classList.remove('hidden');
+            if (tipo==='dashboard') dash.classList.add('active');
         }
 
-        function mostrarExito(mensaje) {
-            const successDiv = document.getElementById('successMessage');
-            successDiv.textContent = mensaje;
-            successDiv.style.display = 'block';
-            setTimeout(() => { successDiv.style.display = 'none'; }, 3000);
+        function manejarErrorLogin(error){
+            console.error('Login error', error);
+            let m='Error al iniciar sesión';
+            if(error.code==='auth/unauthorized-domain') m='Dominio no autorizado en Firebase';
+            if(error.code==='auth/popup-blocked') m='Popup bloqueado: permita popups o use redirect';
+            mostrarError(m);
         }
-
-        function ocultarMensajes() {
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'none';
-        }
+        function mostrarError(m){ const el=document.getElementById('errorMessage'); if(el){ el.textContent=m; el.style.display='block'; setTimeout(()=>el.style.display='none',5000);} }
+        function mostrarExito(m){ const el=document.getElementById('successMessage'); if(el){ el.textContent=m; el.style.display='block'; setTimeout(()=>el.style.display='none',3000);} }
 
         window.iniciarGoogleAuth = iniciarGoogleAuth;
-        window.handleGoogleAuth = handleGoogleAuth;
-        window.currentUser = () => currentUser;
+        window.cerrarSesion = cerrarSesion;
+        window.getCurrentUser = () => currentUser;
     </script>
 </body>
 </html>
