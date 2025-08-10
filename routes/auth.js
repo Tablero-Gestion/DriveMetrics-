@@ -4,6 +4,10 @@ const { body, validationResult } = require('express-validator');
 const moment = require('moment');
 const db = require('../db/db');
 const router = express.Router();
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+const googleClient = googleClientId ? new OAuth2Client(googleClientId) : null;
 
 const validateEmail = body('email')
   .isEmail()
@@ -150,6 +154,59 @@ router.post('/logout', async (req, res) => {
   } catch (error) {
     console.error('Error en logout:', error);
     res.json({ success: true, message: 'Logout exitoso' });
+  }
+});
+
+// Obtener client_id público para el frontend
+router.get('/google-client', (req, res) => {
+  res.json({ success: true, clientId: process.env.GOOGLE_CLIENT_ID || '' });
+});
+
+// Login/registro con Google ID Token
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body || {};
+    if (!credential) return res.status(400).json({ success: false, message: 'Falta credential de Google' });
+    if (!googleClient) return res.status(500).json({ success: false, message: 'Google Client ID no configurado' });
+
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
+    const email = payload?.email;
+    const nombre = payload?.name || payload?.given_name || 'Usuario';
+    if (!email) return res.status(400).json({ success: false, message: 'No se pudo obtener email de Google' });
+
+    let user = await db.queryOne('SELECT id, email, nombre, estado_suscripcion, fecha_expiracion_gratuita FROM usuarios WHERE email = ?', [email]);
+    let userId;
+    if (!user) {
+      const trialDays = parseInt(process.env.TRIAL_DAYS, 10) || 15;
+      const fechaExpiracion = moment().add(trialDays, 'days').format('YYYY-MM-DD HH:mm:ss');
+      const result = await db.query(
+        `INSERT INTO usuarios (email, nombre, telefono, fecha_expiracion_gratuita, estado_suscripcion)
+         VALUES (?, ?, NULL, ?, 'trial')`,
+        [email, nombre, fechaExpiracion]
+      );
+      userId = result.insertId;
+      user = { id: userId, email, nombre, estado_suscripcion: 'trial', fecha_expiracion_gratuita: fechaExpiracion };
+      await db.query('INSERT INTO logs_actividad (usuario_id, accion, ip_address, user_agent) VALUES (?, ?, ?, ?)', [userId, 'registro_google', req.ip, req.get('User-Agent')]);
+    } else {
+      userId = user.id;
+      await db.query('UPDATE usuarios SET ultima_actividad = NOW() WHERE id = ?', [userId]);
+    }
+
+    const token = jwt.sign({ userId, email, estado: user.estado_suscripcion }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    await db.query('INSERT INTO logs_actividad (usuario_id, accion, ip_address, user_agent) VALUES (?, ?, ?, ?)', [userId, 'login_google', req.ip, req.get('User-Agent')]);
+
+    // calcular días restantes si está en trial
+    let diasRestantes = 0;
+    let estadoActual = user.estado_suscripcion;
+    if (estadoActual === 'trial' && user.fecha_expiracion_gratuita) {
+      diasRestantes = moment(user.fecha_expiracion_gratuita).diff(moment(), 'days');
+    }
+
+    res.json({ success: true, token, user: { id: userId, email, nombre: user.nombre, estado: estadoActual, diasRestantes: Math.max(0, diasRestantes), fechaExpiracion: user.fecha_expiracion_gratuita } });
+  } catch (error) {
+    console.error('Error Google Auth:', error);
+    res.status(401).json({ success: false, message: 'Token de Google inválido' });
   }
 });
 

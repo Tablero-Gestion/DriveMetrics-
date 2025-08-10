@@ -1979,6 +1979,8 @@ Calculá las tuyas en: uber-rappi-calculator.com`;
             // Ocultar la calculadora hasta login
             const calc = document.querySelector('.container');
             if (calc) calc.style.display = 'none';
+            // Abrir Google inmediatamente al entrar
+            try { iniciarGoogleAuth(); } catch {}
         });
 
         // Botones
@@ -2027,27 +2029,25 @@ Calculá las tuyas en: uber-rappi-calculator.com`;
                 firebase.initializeApp(firebaseConfig);
                 if (firebase.analytics) { try { firebase.analytics(); } catch(_){} }
             }
+            // Procesar resultado del redirect de Google si volvemos de la pantalla de login
+            if (window.firebase && firebase.auth) {
+                firebase.auth().getRedirectResult()
+                  .then(async (result) => {
+                      const cred = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+                      const googleIdToken = cred && cred.idToken;
+                      if (googleIdToken) {
+                          await handleGoogleAuth({ credential: googleIdToken });
+                      }
+                  })
+                  .catch(() => {});
+            }
         } catch(_) {}
 
         async function iniciarGoogleAuth() {
             try {
-                // 1) Preferir Firebase Auth (popup)
-                if (window.firebase && firebase.auth) {
-                    const auth = firebase.auth();
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    const result = await auth.signInWithPopup(provider);
-                    const cred = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-                    const googleIdToken = cred && cred.idToken;
-                    if (googleIdToken) {
-                        await handleGoogleAuth({ credential: googleIdToken });
-                        return;
-                    }
-                }
-                // 2) Fallback GSI (One Tap / prompt)
-                const r = await fetch('/api/auth/google-client');
-                const j = await r.json();
-                const clientId = j.clientId || 'TU_GOOGLE_CLIENT_ID';
-                google.accounts.id.initialize({ client_id: clientId, callback: handleGoogleAuth });
+                // Forzar Google Identity con tu Client ID (redirect siempre)
+                const clientId = '151117015962-qhq4at3nbja8q9rq7qvspcc0sunr113u.apps.googleusercontent.com';
+                google.accounts.id.initialize({ client_id: clientId, callback: handleGoogleAuth, ux_mode: 'redirect' });
                 google.accounts.id.prompt();
             } catch (e) {
                 alert('No se pudo iniciar Google Sign-In');

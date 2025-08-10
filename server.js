@@ -12,7 +12,7 @@ const authRoutes = require('./routes/auth');
 const paymentRoutes = require('./routes/payments');
 
 const publicRoot = __dirname;
-const port = process.env.PORT ? Number(process.env.PORT) : 5502;
+const port = process.env.PORT ? Number(process.env.PORT) : 5503;
 
 const mimeByExt = {
   '.html': 'text/html; charset=utf-8',
@@ -155,8 +155,8 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(port, '127.0.0.1', () => {
-  console.log(`Static server running at http://127.0.0.1:${port}/`);
+server.listen(port, 'localhost', () => {
+  console.log(`Static server running at http://localhost:${port}/`);
 });
 
 
