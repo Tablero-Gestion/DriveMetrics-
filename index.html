@@ -498,9 +498,16 @@
             .predictor-container { grid-template-columns: 1fr; }
         }
     </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <meta name="description" content="Calculadora de ganancias para repartidores y conductores de Uber, Rappi y PedidosYa en Argentina. Estima ingresos netos considerando comisiones, combustible, mantenimiento e impuestos." />
 </head>
 <body>
+    <!-- BARRA DE ESTADO DE PRUEBA -->
+    <div id="trial-status" class="trial-status-bar hidden">
+        <span id="trial-text">🎁 Período de prueba: quedan X días gratis</span>
+        <button id="upgrade-btn" class="upgrade-btn">💎 Actualizar a Premium</button>
+    </div>
+
     <!-- PANTALLA DE LOGIN -->
     <div id="login-screen" class="login-container">
         <div class="login-box">
@@ -516,6 +523,9 @@
                 </div>
                 <button type="submit">Ingresar</button>
             </form>
+
+            <div style="margin:14px 0; color:#64748b; font-weight:700;">o</div>
+            <button id="google-login-btn" class="google-btn" style="width:100%">Continuar con Google</button>
             
             <div class="trial-info">
                 <h3>🎁 10 días GRATIS</h3>
@@ -2028,6 +2038,10 @@ Calculá las tuyas en: uber-rappi-calculator.com`;
                 const dHoras = document.getElementById('desafio-horas');
                 if (dMeta) dMeta.addEventListener('input', actualizarDesafio);
                 if (dHoras) dHoras.addEventListener('input', actualizarDesafio);
+                const gbtn = document.getElementById('google-login-btn');
+                if (gbtn) gbtn.addEventListener('click', iniciarGoogleAuth);
+                const upg = document.getElementById('upgrade-btn');
+                if (upg) upg.addEventListener('click', abrirModalPago);
             }, 0);
             // Ocultar la calculadora hasta login
             const calc = document.querySelector('.container');
@@ -2063,6 +2077,61 @@ Calculá las tuyas en: uber-rappi-calculator.com`;
         document.getElementById('btn-inv-calcular').addEventListener('click', calcularInversiones);
         document.getElementById('desafio-meta').addEventListener('input', actualizarDesafio);
         document.getElementById('desafio-horas').addEventListener('input', actualizarDesafio);
+
+        // ---- GOOGLE SIGN-IN ----
+        function iniciarGoogleAuth() {
+            try {
+                google.accounts.id.initialize({
+                    client_id: (window.GOOGLE_CLIENT_ID || 'TU_GOOGLE_CLIENT_ID'),
+                    callback: handleGoogleAuth
+                });
+                google.accounts.id.prompt();
+            } catch (e) {
+                alert('No se pudo iniciar Google Sign-In');
+            }
+        }
+        async function handleGoogleAuth(response) {
+            try {
+                // Si hay backend para Google, enviar token:
+                // const r = await fetch('/api/auth/google', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ credential: response.credential }) });
+                // const d = await r.json(); if (!r.ok) throw new Error(d.message||'Error Google');
+                cerrarLogin();
+                // Mostrar barra de trial (demo)
+                const bar = document.getElementById('trial-status');
+                if (bar) bar.classList.remove('hidden');
+                const t = document.getElementById('trial-text');
+                if (t) t.textContent = '🎁 Período de prueba activo: 10 días restantes';
+            } catch {
+                alert('No se pudo autenticar con Google');
+            }
+        }
+
+        // ---- PAGO / PREMIUM (modal simple) ----
+        function abrirModalPago() {
+            const modal = document.createElement('div');
+            modal.className = 'payment-modal';
+            modal.innerHTML = `
+                <div class="payment-content">
+                    <button class="close-modal" id="pm-close">&times;</button>
+                    <h2>💎 Actualizar a Premium</h2>
+                    <p>Acceso completo a todas las herramientas</p>
+                    <div class="price-box">
+                        <div class="price">$${(parseFloat((window.MONTHLY_PRICE)||1500)).toLocaleString('es-AR')}</div>
+                        <div class="price-period">por mes</div>
+                    </div>
+                    <button class="payment-btn" id="pm-pagar">Pagar con MercadoPago</button>
+                </div>`;
+            document.body.appendChild(modal);
+            document.getElementById('pm-close').onclick = ()=> modal.remove();
+            document.getElementById('pm-pagar').onclick = async ()=>{
+                try {
+                    const res = await fetch('/api/payments/create-preference', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include' });
+                    const data = await res.json();
+                    if (res.ok && data.init_point) { window.open(data.init_point, '_blank'); }
+                    else alert(data.message || 'No se pudo iniciar el pago');
+                } catch { alert('Error conectando con pagos'); }
+            };
+        }
     </script>
     </body>
     </html>

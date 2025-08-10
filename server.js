@@ -113,6 +113,8 @@ app.use(cors({ origin: process.env.DOMAIN_URL || 'http://localhost:5502', creden
 app.use(helmet());
 app.use(rateLimit({ windowMs: 60 * 1000, max: 100 }));
 app.use('/api/auth', authRoutes);
+// Compatibilidad con frontend que llama a /api/login y /api/registro
+app.use('/api', authRoutes);
 app.use('/api/payments', paymentRoutes);
 
 const server = http.createServer((req, res) => {
