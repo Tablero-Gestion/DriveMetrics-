@@ -495,6 +495,7 @@
         </div>
     </div>
 
+    <script src="/quickImplementation.js"></script>
     <script>
         const GOOGLE_CLIENT_ID = '151117015962-qhq4at3nbja8q9rq7qvspcc0sunr113u.apps.googleusercontent.com';
         const firebaseConfig = {
@@ -521,6 +522,16 @@
                     const redirectHecho = await procesarRedirectResult();
                     if (!redirectHecho) mostrarPantalla('login');
                 }
+                // Inicializar simulador de datos reales (opcional)
+                try {
+                    if (window.RealDataSimulator) {
+                        window.__rdSim = new RealDataSimulator();
+                        await window.__rdSim.getCurrentLocation();
+                        const d = window.__rdSim.generateRealtimeData();
+                        // se podría hidratar UI aquí con d
+                        window.__rdSim.startRealTimeUpdates(()=>{});
+                    }
+                } catch {}
             } catch(e) {
                 console.error(e); mostrarPantalla('login');
             }
