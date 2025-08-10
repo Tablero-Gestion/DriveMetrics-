@@ -500,6 +500,11 @@
     </style>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <meta name="description" content="Calculadora de ganancias para repartidores y conductores de Uber, Rappi y PedidosYa en Argentina. Estima ingresos netos considerando comisiones, combustible, mantenimiento e impuestos." />
+    <!-- Firebase (compat) y Google Identity Services -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <!-- BARRA DE ESTADO DE PRUEBA -->
@@ -508,58 +513,28 @@
         <button id="upgrade-btn" class="upgrade-btn">💎 Actualizar a Premium</button>
     </div>
 
-    <!-- PANTALLA DE LOGIN -->
-    <div id="login-screen" class="login-container">
-        <div class="login-box">
-            <h1>🚗💰 Calculadora Pro</h1>
-            <p>Acceso para drivers premium</p>
-            
-            <form id="login-form">
-                <div class="input-group">
-                    <input type="text" id="username" placeholder="Usuario" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="password" placeholder="Contraseña" required>
-                </div>
-                <button type="submit">Ingresar</button>
-            </form>
+    <!-- PANTALLA DE AUTENTICACIÓN (solo Google) -->
+    <div id="auth-screen" class="auth-container">
+        <div class="auth-box">
+            <h1>🚗💰 Driver Metrics Pro</h1>
+            <p class="subtitle">La calculadora más avanzada para conductores de Argentina</p>
 
-            <div style="margin:14px 0; color:#64748b; font-weight:700;">o</div>
             <button id="google-login-btn" class="google-btn" style="width:100%">Continuar con Google</button>
-            
-            <div class="trial-info">
-                <h3>🎁 10 días GRATIS</h3>
-                <p>Después solo $1500/mes</p>
-                <p>¿No tenés cuenta? <a onclick="mostrarRegistro()">Registrate gratis</a></p>
-            </div>
-        </div>
-    </div>
 
-    <!-- PANTALLA DE REGISTRO -->
-    <div id="registro-screen" class="login-container hidden">
-        <div class="login-box">
-            <h1>📝 Registro Gratuito</h1>
-            <p>10 días gratis, después $1500/mes</p>
-            
-            <form id="registro-form">
-                <div class="input-group">
-                    <input type="text" id="reg-nombre" placeholder="Tu nombre" required>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="reg-telefono" placeholder="WhatsApp" required>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="reg-username" placeholder="Elegí un usuario" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="reg-password" placeholder="Elegí contraseña" required>
-                </div>
-                <button type="submit">🚀 Comenzar Prueba Gratis</button>
-            </form>
-            <div style="margin:14px 0; color:#64748b; font-weight:700;">o</div>
-            <button id="google-register-btn" class="google-btn" style="width:100%">Continuar con Google</button>
-            
-            <p style="margin-top:10px;"><a onclick="mostrarLogin()">¿Ya tenés cuenta? Ingresá acá</a></p>
+            <div class="trial-badge">
+                <h3>🎁 15 días completamente GRATIS</h3>
+                <p>Acceso completo a todas las funciones premium</p>
+                <p><strong>Después solo $1500/mes</strong></p>
+            </div>
+
+            <ul class="features-list">
+                <li>Cálculos precisos de ganancias reales</li>
+                <li>Mapa de calor de zonas premium</li>
+                <li>Predictor IA con recomendaciones personalizadas</li>
+                <li>Alertas de horarios de mayor demanda</li>
+                <li>Comparador multi-plataforma en tiempo real</li>
+                <li>Herramientas de optimización automática</li>
+            </ul>
         </div>
     </div>
     <div class="container">
@@ -1147,53 +1122,7 @@ Calculá las tuyas en: uber-rappi-calculator.com`;
         }
 
         (function initAuthUI(){
-            const base = location.origin;
-            const lf = document.getElementById('login-form');
-            const rf = document.getElementById('registro-form');
-            if (lf) lf.addEventListener('submit', async (e)=>{
-                e.preventDefault();
-                const u = document.getElementById('username').value.trim();
-                const p = document.getElementById('password').value.trim();
-                if (!u || !p) return;
-                try {
-                    const res = await fetch(base + '/api/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ username: u, password: p })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.ok) {
-                        cerrarLogin();
-                    } else {
-                        alert(data.error || 'Error de login');
-                    }
-                } catch {
-                    alert('No se pudo conectar con el servidor');
-                }
-            });
-            if (rf) rf.addEventListener('submit', async (e)=>{
-                e.preventDefault();
-                const u = document.getElementById('reg-username').value.trim();
-                const p = document.getElementById('reg-password').value.trim();
-                if (!u || !p) return;
-                try {
-                    const res = await fetch(base + '/api/register', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ username: u, password: p })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.ok) {
-                        cerrarLogin();
-                    } else {
-                        alert(data.error || 'Error de registro');
-                    }
-                } catch {
-                    alert('No se pudo conectar con el servidor');
-                }
-            });
+            // Solo Google
         })();
 
         // ---- ALERTAS DE HORARIOS PREMIUM ----
@@ -2083,12 +2012,42 @@ Calculá las tuyas en: uber-rappi-calculator.com`;
         document.getElementById('desafio-horas').addEventListener('input', actualizarDesafio);
 
         // ---- GOOGLE SIGN-IN ----
-        function iniciarGoogleAuth() {
+        // Firebase config (pública del proyecto)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCFDb40oDXxQRG4PY0GAIaC8Ck7zS9tm0A",
+            authDomain: "drivemetrics-9ef78.firebaseapp.com",
+            projectId: "drivemetrics-9ef78",
+            storageBucket: "drivemetrics-9ef78.firebasestorage.app",
+            messagingSenderId: "151117015962",
+            appId: "1:151117015962:web:576aff049892be2760e823",
+            measurementId: "G-1T99LXNLSM"
+        };
+        try {
+            if (window.firebase && !firebase.apps?.length) {
+                firebase.initializeApp(firebaseConfig);
+                if (firebase.analytics) { try { firebase.analytics(); } catch(_){} }
+            }
+        } catch(_) {}
+
+        async function iniciarGoogleAuth() {
             try {
-                google.accounts.id.initialize({
-                    client_id: (window.GOOGLE_CLIENT_ID || 'TU_GOOGLE_CLIENT_ID'),
-                    callback: handleGoogleAuth
-                });
+                // 1) Preferir Firebase Auth (popup)
+                if (window.firebase && firebase.auth) {
+                    const auth = firebase.auth();
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    const result = await auth.signInWithPopup(provider);
+                    const cred = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+                    const googleIdToken = cred && cred.idToken;
+                    if (googleIdToken) {
+                        await handleGoogleAuth({ credential: googleIdToken });
+                        return;
+                    }
+                }
+                // 2) Fallback GSI (One Tap / prompt)
+                const r = await fetch('/api/auth/google-client');
+                const j = await r.json();
+                const clientId = j.clientId || 'TU_GOOGLE_CLIENT_ID';
+                google.accounts.id.initialize({ client_id: clientId, callback: handleGoogleAuth });
                 google.accounts.id.prompt();
             } catch (e) {
                 alert('No se pudo iniciar Google Sign-In');
@@ -2096,16 +2055,15 @@ Calculá las tuyas en: uber-rappi-calculator.com`;
         }
         async function handleGoogleAuth(response) {
             try {
-                // Si hay backend para Google, enviar token:
-                // const r = await fetch('/api/auth/google', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ credential: response.credential }) });
-                // const d = await r.json(); if (!r.ok) throw new Error(d.message||'Error Google');
+                const r = await fetch('/api/auth/google', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ credential: response.credential }) });
+                const d = await r.json();
+                if (!r.ok || !d.success) throw new Error(d.message||'Error Google');
                 cerrarLogin();
-                // Mostrar barra de trial (demo)
                 const bar = document.getElementById('trial-status');
                 if (bar) bar.classList.remove('hidden');
                 const t = document.getElementById('trial-text');
-                if (t) t.textContent = '🎁 Período de prueba activo: 10 días restantes';
-            } catch {
+                if (t && d.user && Number.isFinite(d.user.diasRestantes)) t.textContent = `🎁 Período de prueba: quedan ${d.user.diasRestantes} días`;
+            } catch (e) {
                 alert('No se pudo autenticar con Google');
             }
         }
