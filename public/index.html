@@ -559,6 +559,16 @@
                 if (window.firebase && !firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
                 }
+                // Si llega ?section=... forzar mostrar la sección correspondiente
+                try {
+                    const params = new URLSearchParams(window.location.search);
+                    const section = params.get('section');
+                    const map = { predictor: '#predictor', alerts: '#alerts', ltc: '#ltc', challenge: '#challenge' };
+                    if (section && map[section]) {
+                        const el = document.querySelector(map[section]);
+                        if (el) { el.classList.remove('hidden'); el.style.display = ''; setTimeout(()=> el.scrollIntoView({behavior:'smooth'}), 200); }
+                    }
+                } catch {}
                 const sesion = await verificarSesionExistente();
                 if (sesion) {
                     await mostrarDashboard(sesion);
