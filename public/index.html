@@ -8,6 +8,7 @@
     <script src="https://accounts.google.com/gsi/client"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="/payment-styles.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
@@ -95,16 +96,16 @@
         .detectar-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .ubicacion-info { margin-top: 15px; color: #fff; font-size: 1.1rem; }
         .mapa-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .zona-actual-card, .zonas-premium-card, .comparacion-zonas, .horarios-zona { background: #f8f9ff; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea; }
+        .zona-actual-card, .zonas-premium-card, .comparacion-zonas, .horarios-zona { background: #f8f9ff; padding: 20px; border-radius: 10px; }
         .zona-actual-card h3, .zonas-premium-card h3, .comparacion-zonas h3, .horarios-zona h3 { color: #667eea; margin-bottom: 15px; font-size: 1.1rem; }
-        .zona-premium-item { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#fff; border-radius:5px; margin-bottom:8px; border-left:3px solid #00ff88; }
+        .zona-premium-item { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#fff; border-radius:5px; margin-bottom:8px; }
         .zona-nombre-premium { font-weight:600; }
         .zona-ganancia { color:#00ff88; font-weight:bold; }
         .zona-comparacion { display:grid; grid-template-columns:2fr 1fr 1fr; gap:10px; padding:12px; background:#fff; border-radius:5px; margin-bottom:8px; align-items:center; }
         .zona-potencial { color:#667eea; font-weight:bold; }
         .zona-diferencia { background:#00ff88; color:#fff; padding:5px 10px; border-radius:15px; text-align:center; font-size:.9rem; font-weight:bold; }
         .zona-diferencia.negativa { background:#ff4757; }
-        .horario-zona-item { background:#fff; padding:12px; border-radius:5px; margin-bottom:10px; border-left:3px solid #ffd700; }
+        .horario-zona-item { background:#fff; padding:12px; border-radius:5px; margin-bottom:10px; }
         .horario-zona-titulo { font-weight:600; color:#333; margin-bottom:5px; }
         .horario-zona-detalle { font-size:.9rem; color:#666; }
         .alerta-zona { background: linear-gradient(45deg, #ff6b6b, #ee5a6f); color:#fff; padding:15px; border-radius:8px; margin-top:15px; text-align:center; }
@@ -138,14 +139,6 @@
         .ch-card{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:16px; }
         .ch-badge{ padding:6px 10px; border-radius:999px; font-weight:700; font-size:.8rem; }
         .ch-progress{ height:16px; background:#334155; border-radius:999px; overflow:hidden; }
-        .ch-progress>div{ height:100%; background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444); width:0%; transition:width .6s ease; }
-
-        /* Datos Reales (vanilla) */
-        .rd-section{ background:#0b1220; color:#eef2ff; padding:24px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); margin:30px 0; }
-        .rd-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:14px; }
-        .rd-card{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:16px; }
-        .rd-badge{ padding:4px 8px; border-radius:999px; font-size:.8rem; font-weight:700; }
-        .rd-pill{ border-radius:999px; padding:6px 10px; font-size:.85rem; display:inline-flex; align-items:center; gap:6px; }
     </style>
 </head>
 <body>
@@ -497,6 +490,7 @@
 
     <script src="/quickImplementation.js"></script>
     <script src="/payment-system.js"></script>
+    <script src="/trial-counter.js"></script>
     <script>
         const GOOGLE_CLIENT_ID = '151117015962-qhq4at3nbja8q9rq7qvspcc0sunr113u.apps.googleusercontent.com';
         const firebaseConfig = {
