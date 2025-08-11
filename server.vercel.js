@@ -294,7 +294,7 @@ app.post('/api/payments/create-preference', async (req, res) => {
 
     const { user_id, email, plan_type = 'monthly' } = req.body;
     if (!user_id || !email) return res.status(400).json({ error: 'user_id y email requeridos' });
-    const plans = { monthly:{ price:2999, title:'DriveMetrics Pro - Mensual' }, annual:{ price:29999, title:'DriveMetrics Pro - Anual' } };
+    const plans = { monthly:{ price:1500, title:'DriveMetrics Pro - Mensual' }, annual:{ price:15000, title:'DriveMetrics Pro - Anual' } };
     const selected = plans[plan_type]; if(!selected) return res.status(400).json({ error:'Plan inválido' });
 
     const preference = {
