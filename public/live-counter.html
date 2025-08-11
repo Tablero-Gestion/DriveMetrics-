@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DriveMetrics - Contador de Viajes EN VIVO</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0b1220;margin:0;padding:20px;color:#eef2ff}
+    .wrap{max-width:1000px;margin:0 auto}
+    .ltc-section{background:#0b1220;color:#eef2ff;padding:24px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .muted{color:#9ca3af}
+    .chip{padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.08);cursor:pointer;display:inline-block;margin:4px}
+    .chip.active{box-shadow:0 0 0 2px rgba(255,255,255,.25) inset}
+    .timer{font-family:ui-monospace,Consolas,monospace;font-size:48px;text-align:center;margin:10px 0;background: linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px;text-align:center}
+    button{border:none;border-radius:12px;padding:12px 18px;font-weight:700;cursor:pointer;color:#fff;margin:0 4px}
+    .g{background:#22c55e}.y{background:#f59e0b}.r{background:#ef4444}
+    a.back{display:inline-block;margin-top:16px;background:#fff;color:#111827;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 style="margin:0 0 12px 0">🚦 Contador de Viajes EN VIVO</h1>
+    <div class="ltc-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(255,255,255,.08);padding:12px 16px;border-radius:12px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="ind" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6b7280"></span>
+          <span id="st" class="muted">INACTIVO</span>
+        </div>
+        <div>
+          <button class="g" id="start">INICIAR</button>
+          <button class="y" id="pause">PAUSAR</button>
+          <button class="r" id="stop">FINALIZAR</button>
+        </div>
+      </div>
+      <div id="chips" style="margin-top:8px"></div>
+      <div class="timer" id="work">00:00:00</div>
+      <div class="card" style="margin:10px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:700;">Viaje Actual</div>
+            <div id="tripSt" class="muted">Esperando</div>
+          </div>
+          <div>
+            <button class="g" id="tripStart">INICIAR VIAJE</button>
+            <button class="g" id="tripDone" style="background:#16a34a">COMPLETAR</button>
+          </div>
+        </div>
+        <div class="grid" style="margin-top:10px;">
+          <div class="card"><div id="tripTime">00:00:00</div><div class="muted">Duración</div></div>
+          <div class="card"><div id="tripKm">0.0 km</div><div class="muted">Distancia</div></div>
+          <div class="card"><div id="tripEarn">$0</div><div class="muted">Estimado</div></div>
+          <div class="card"><div id="tripPlat">Uber</div><div class="muted">Plataforma</div></div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card"><div id="dTrips">0</div><div class="muted">Viajes Completados</div></div>
+        <div class="card"><div id="dEarn">$0</div><div class="muted">Ganancias Totales</div></div>
+        <div class="card"><div id="dAvg">$0</div><div class="muted">Promedio por Viaje</div></div>
+        <div class="card"><div id="dHours">0.0h</div><div class="muted">Horas Trabajadas</div></div>
+      </div>
+    </div>
+    <a class="back" href="/">← Volver</a>
+  </div>
+  <script>
+    const el=(id)=>document.getElementById(id);
+    const fmt=(s)=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),t=s%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(t).padStart(2,'0')}`};
+    const money=(n)=> new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:0}).format(n).replace('ARS','$');
+    const state={active:false,paused:false,work:0,trip:{status:'waiting',duration:0,distance:0,earning:0,platform:'Uber'},daily:{trips:0,earn:0,hours:0}};
+    let timer=null, tripTimer=null; const plats=['Uber','Rappi','DiDi','PedidosYa'];
+    el('chips').innerHTML = plats.map(p=>`<span class="chip">${p}</span>`).join('');
+    Array.from(document.querySelectorAll('.chip')).forEach(ch=> ch.onclick=()=>{ state.trip.platform=ch.textContent; el('tripPlat').textContent=state.trip.platform; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); ch.classList.add('active'); });
+    function render(){ el('ind').style.background = (state.active&&!state.paused)?'#22c55e':(state.paused?'#f59e0b':'#6b7280'); el('st').textContent=(state.active&&!state.paused)?'ACTIVO':(state.paused?'EN PAUSA':'INACTIVO'); el('work').textContent=fmt(state.work); el('tripTime').textContent=fmt(state.trip.duration); el('tripKm').textContent= state.trip.distance.toFixed(1)+' km'; el('tripEarn').textContent= money(state.trip.earning); el('tripSt').textContent = state.trip.status==='waiting'?'Esperando': state.trip.status==='en_route'?'En camino': state.trip.status==='delivering'?'Entregando':'¡Completado!'; el('dTrips').textContent=state.daily.trips; el('dEarn').textContent=money(state.daily.earn); el('dAvg').textContent=money(state.daily.trips? state.daily.earn/state.daily.trips:0); el('dHours').textContent=(state.work/3600).toFixed(1)+'h'; }
+    function tick(){ if(state.active && !state.paused){ state.work++; if(state.work%30===0){ state.daily.hours=state.work/3600; } render(); } }
+    function start(){ state.active=true; state.paused=false; clearInterval(timer); timer=setInterval(tick,1000); render(); }
+    function pause(){ state.paused=!state.paused; render(); }
+    function stop(){ state.active=false; state.paused=false; clearInterval(timer); clearInterval(tripTimer); Object.assign(state.trip,{status:'waiting',duration:0,distance:0,earning:0}); render(); }
+    function tripStart(){ if(!state.active) return; state.trip.status='en_route'; state.trip.duration=0; state.trip.distance=0; state.trip.earning=5+Math.random()*10; clearInterval(tripTimer); tripTimer=setInterval(()=>{ if(state.trip.status!=='completed'){ state.trip.duration++; state.trip.distance+=Math.random()*0.1; state.trip.earning+=Math.random()*0.05; render(); } }, 1000); }
+    function tripDone(){ if(state.trip.status==='completed') return; state.trip.status='completed'; state.daily.trips++; const mult = {Uber:1.2,Rappi:1.0,DiDi:1.1,PedidosYa:1.15}[state.trip.platform]||1; state.daily.earn+= state.trip.earning*mult; render(); setTimeout(()=>{ state.trip.status='waiting'; state.trip.duration=0; state.trip.distance=0; state.trip.earning=0; render(); }, 1000); }
+    el('start').onclick=start; el('pause').onclick=pause; el('stop').onclick=stop; el('tripStart').onclick=tripStart; el('tripDone').onclick=tripDone; render();
+  </script>
+</body>
+</html>
+
+

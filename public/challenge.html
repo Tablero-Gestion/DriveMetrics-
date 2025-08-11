@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DriveMetrics - Modo Challenge</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a;color:#eef2ff;margin:0;padding:20px}
+    .wrap{max-width:1100px;margin:0 auto}
+    .card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:16px;margin-bottom:12px}
+    .badge{padding:6px 10px;border-radius:999px;font-weight:700;font-size:.8rem}
+    .btn{border:none;border-radius:12px;padding:12px 18px;font-weight:700;cursor:pointer;color:#fff;margin:0 6px}
+    .g{background:#22c55e}.y{background:#f59e0b}.r{background:#ef4444}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+    .progress{height:16px;background:#334155;border-radius:999px;overflow:hidden}
+    #bar{height:100%;background:linear-gradient(90deg,#22c55e,#12d6a6);width:0%}
+    a.back{display:inline-block;margin-top:16px;background:#fff;color:#111827;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 style="margin:0 0 12px 0">🏆 MODO CHALLENGE</h1>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div>
+          <div style="font-weight:800;font-size:20px" id="name">—</div>
+          <div id="desc" style="color:#9ca3af">Seleccioná un desafío para comenzar</div>
+        </div>
+        <div id="reward" class="badge" style="background:#f59e0b;color:#1f2937">0 pts</div>
+      </div>
+      <div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between"><span>Progreso</span><span id="pct">0%</span></div>
+        <div class="progress"><div id="bar"></div></div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <div class="card"><div id="earn">$0</div><div style="color:#9ca3af">Ganancias</div></div>
+        <div class="card"><div id="trips">0</div><div style="color:#9ca3af">Viajes</div></div>
+        <div class="card"><div id="time">00:00:00</div><div style="color:#9ca3af">Tiempo</div></div>
+        <div class="card"><div id="zones">0</div><div style="color:#9ca3af">Zonas</div></div>
+      </div>
+      <div style="text-align:center;margin:12px 0">
+        <button class="btn g" id="start">INICIAR</button>
+        <button class="btn y" id="pause">PAUSAR</button>
+        <button class="btn r" id="reset">REINICIAR</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px 0">Desafíos Disponibles</h3>
+      <div id="list" class="grid"></div>
+    </div>
+    <a class="back" href="/">← Volver</a>
+  </div>
+  <script>
+    const $=(id)=>document.getElementById(id); const fmt=(s)=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),t=s%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(t).padStart(2,'0')}`}; const money=(n)=> new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:0}).format(n).replace('ARS','$');
+    const challenges={ facil:[ {id:'starter',name:'Primer Paso',icon:'🎯',target:{earn:4000,time:6*3600},desc:'Gana $4,000 en 6 horas',reward:100}, {id:'consistent',name:'Consistencia',icon:'⚡',target:{trips:8,time:8*3600},desc:'Completa 8 viajes en 8 horas',reward:150}], medio:[ {id:'daily_hero',name:'Héroe Diario',icon:'🏆',target:{earn:6000,time:8*3600},desc:'Gana $6,000 en 8 horas',reward:250}], dificil:[ {id:'legend',name:'Legendario',icon:'👑',target:{earn:10000,time:12*3600},desc:'Gana $10,000 en 12 horas',reward:500}]};
+    const state={active:false,paused:false,time:0,progress:{earn:0,trips:0,zones:0},activeChallenge:null};
+    function render(){ $('name').textContent = state.activeChallenge? `${state.activeChallenge.icon} ${state.activeChallenge.name}`:'—'; $('desc').textContent = state.activeChallenge? state.activeChallenge.desc:'Seleccioná un desafío para comenzar'; $('reward').textContent = state.activeChallenge? `${state.activeChallenge.reward} pts`:'0 pts'; $('pct').textContent = pct().toFixed(1)+'%'; $('bar').style.width=pct()+'%'; $('time').textContent=fmt(state.time); $('earn').textContent=money(state.progress.earn); $('trips').textContent=state.progress.trips; $('zones').textContent=state.progress.zones; }
+    function pct(){ if(!state.activeChallenge) return 0; const t=state.activeChallenge.target; let v=0,c=0; if(t.earn){ v+= Math.min(100,(state.progress.earn / t.earn)*100); c++; } if(t.trips){ v+= Math.min(100,(state.progress.trips / t.trips)*100); c++; } if(t.time){ v+= Math.min(100,(state.time / t.time)*100); c++; } if(t.zones){ v+= Math.min(100,(state.progress.zones / t.zones)*100); c++; } return c? v/c : 0; }
+    function list(){ const root=$('list'); const all=[...challenges.facil,...challenges.medio,...challenges.dificil]; root.innerHTML = all.map(c=>`<div class="card"><div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;\"><div style=\"font-size:28px\">${c.icon}</div><div class=\"badge\" style=\"background:#a78bfa\">${c.reward} pts</div></div><div style=\"font-weight:700\">${c.name}</div><div style=\"color:#9ca3af;margin:6px 0 10px 0\">${c.desc}</div><button class=\"btn\" style=\"background:#6366f1;width:100%\" data-id=\"${c.id}\">INICIAR DESAFÍO</button></div>`).join(''); root.onclick=(e)=>{ const b=e.target.closest('button[data-id]'); if(!b) return; const id=b.getAttribute('data-id'); const a=all.find(x=>x.id===id); state.activeChallenge=a; state.active=true; state.paused=false; state.time=0; state.progress={earn:0,trips:0,zones:0}; render(); } }
+    function tick(){ if(state.active && !state.paused){ state.time++; if(Math.random()<0.08){ state.progress.earn += 50 + Math.random()*120; if(Math.random()<0.05){ state.progress.trips += 1; state.progress.zones += Math.random()<0.3?1:0; } } render(); } }
+    $('start').onclick=()=>{ if(!state.activeChallenge){ list(); } state.active=true; state.paused=false; };
+    $('pause').onclick=()=>{ state.paused=!state.paused; };
+    $('reset').onclick=()=>{ state.active=false; state.paused=false; state.time=0; state.progress={earn:0,trips:0,zones:0}; state.activeChallenge=null; render(); };
+    setInterval(tick,1000); list(); render();
+  </script>
+</body>
+</html>
+
+
