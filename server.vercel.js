@@ -4,7 +4,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const { sql } = require('@vercel/postgres');
-const mercadopago = require('mercadopago');
+const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 
 const app = express();
 
@@ -15,12 +15,9 @@ const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
-// MercadoPago setup (acepta variables estilo MERCADOPAGO_* o MP_*)
+// MercadoPago setup (nueva API)
 const MP_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || process.env.MP_ACCESS_TOKEN;
-const MP_INTEGRATOR_ID = process.env.MERCADOPAGO_INTEGRATOR_ID || process.env.MP_INTEGRATOR_ID;
-if (MP_ACCESS_TOKEN) {
-  mercadopago.configure({ access_token: MP_ACCESS_TOKEN, integrator_id: MP_INTEGRATOR_ID });
-}
+const mpClient = MP_ACCESS_TOKEN ? new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN }) : null;
 
 function generateSessionToken() {
   return jwt.sign(
@@ -288,7 +285,7 @@ app.post('/api/subscription/cancel', async (req, res) => {
 // ====== Pagos y Suscripciones (Vercel) ======
 app.post('/api/payments/create-preference', async (req, res) => {
   try {
-    if (!process.env.MP_ACCESS_TOKEN) {
+    if (!mpClient) {
       return res.status(400).json({ error: 'MercadoPago no configurado' });
     }
 
@@ -313,9 +310,10 @@ app.post('/api/payments/create-preference', async (req, res) => {
       expiration_date_to: new Date(Date.now()+24*60*60*1000).toISOString()
     };
 
-    const resp = await mercadopago.preferences.create(preference);
-    await sql`INSERT INTO subscriptions (user_id, plan_type, amount, currency, status, mp_preference_id) VALUES (${user_id}, ${plan_type}, ${selected.price}, 'ARS', 'pending', ${resp.body.id});`;
-    res.json({ preference_id: resp.body.id, init_point: resp.body.init_point, sandbox_init_point: resp.body.sandbox_init_point, plan: { type: plan_type, price: selected.price, title: selected.title } });
+    const pref = new Preference(mpClient);
+    const resp = await pref.create({ body: preference });
+    await sql`INSERT INTO subscriptions (user_id, plan_type, amount, currency, status, mp_preference_id) VALUES (${user_id}, ${plan_type}, ${selected.price}, 'ARS', 'pending', ${resp.id || resp.body?.id});`;
+    res.json({ preference_id: (resp.id || resp.body?.id), init_point: (resp.init_point || resp.body?.init_point), sandbox_init_point: (resp.sandbox_init_point || resp.body?.sandbox_init_point), plan: { type: plan_type, price: selected.price, title: selected.title } });
   } catch (e) {
     console.error('Error creando preferencia:', e);
     res.status(500).json({ error: 'No se pudo crear la preferencia' });
@@ -327,8 +325,9 @@ app.post('/api/payments/webhook', async (req, res) => {
     const { type, data } = req.body || {};
     if (type === 'payment' && data?.id) {
       try {
-        const payment = await mercadopago.payment.findById(data.id);
-        const p = payment.body;
+        const paymentClient = new Payment(mpClient);
+        const paymentResp = await paymentClient.get({ id: data.id });
+        const p = paymentResp?.body || paymentResp || {};
         if (p.status === 'approved') {
           const ref = p.external_reference || '';
           const parts = ref.split('_');
@@ -336,12 +335,10 @@ app.post('/api/payments/webhook', async (req, res) => {
           const planType = parts[2];
           const durationDays = planType === 'annual' ? 365 : 30;
           const endDate = new Date(Date.now() + durationDays*24*60*60*1000);
-
-          // update user (if exists) is in another db on MySQL in local; here only subscriptions/payments
           const { rows: subs } = await sql`SELECT id FROM subscriptions WHERE user_id=${userId} AND status='pending' ORDER BY created_at DESC LIMIT 1;`;
           const subId = subs.length? subs[0].id : null;
           if (subId) {
-            await sql`UPDATE subscriptions SET status='active', start_date=${new Date().toISOString()}, end_date=${endDate.toISOString()}, mp_subscription_id=${p.id}, updated_at=NOW() WHERE id=${subId};`;
+            await sql`UPDATE subscriptions SET status='active', start_date=${new Date().toISOString()}, end_date=${endDate.toISOString()}, mp_subscription_id=${String(p.id)}, updated_at=NOW() WHERE id=${subId};`;
           }
           await sql`INSERT INTO payments (user_id, subscription_id, mp_payment_id, amount, currency, status, payment_method, payment_date, description) VALUES (${userId}, ${subId}, ${String(p.id)}, ${Number(p.transaction_amount)||0}, ${p.currency_id||'ARS'}, ${p.status}, ${p.payment_type_id||''}, ${new Date().toISOString()}, ${`Suscripción ${planType} - DriveMetrics Pro`});`;
         }
