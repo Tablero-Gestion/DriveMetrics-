@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DriveMetrics - Calculadora de Ganancias</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .platform-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .platform-btn {
+            padding: 10px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .platform-btn:hover {
+            border-color: #6366f1;
+            background: #f8faff;
+        }
+        
+        .platform-btn.active {
+            border-color: #6366f1;
+            background: #6366f1;
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        
+        .form-group select:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .calculate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .earnings-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .earnings-item {
+            background: rgba(255,255,255,0.1);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .earnings-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .earnings-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+        
+        .earnings-amount {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .taxi-options {
+            display: none;
+            background: #f8faff;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border: 2px solid #e0e7ff;
+        }
+        
+        .taxi-options.show {
+            display: block;
+        }
+        
+        .employee-section {
+            margin-top: 16px;
+        }
+        
+        .employee-result {
+            background: rgba(255,255,255,0.15);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            display: none;
+        }
+        
+        .employee-result.show {
+            display: block;
+        }
+        
+        .employee-result h4 {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .final-amount {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .platform-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="data:,">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>
+                📊 Datos de Trabajo
+            </h2>
+            
+            <div class="platform-buttons">
+                <button class="platform-btn" data-platform="uber">🚗 Uber</button>
+                <button class="platform-btn" data-platform="didi">🚕 DiDi</button>
+                <button class="platform-btn" data-platform="rappi">🛵 Rappi</button>
+                <button class="platform-btn" data-platform="pedidoya">🍔 PedidosYa</button>
+                <button class="platform-btn" data-platform="taxi">🚖 Taxi</button>
+            </div>
+            
+            <div class="form-group">
+                <label>💰 Ganancia Bruta (por día)</label>
+                <input type="number" id="gananciaBruta" placeholder="8000" value="8000">
+            </div>
+            
+            <div class="form-group">
+                <label>⏰ Horas trabajadas (por día)</label>
+                <input type="number" id="horasTrabajadas" placeholder="8" value="8">
+            </div>
+            
+            <div class="form-group">
+                <label>📅 Días trabajados (por semana)</label>
+                <input type="number" id="diasTrabajados" placeholder="6" value="6">
+            </div>
+            
+            <div class="form-group">
+                <label>🛣️ Km recorridos (por día)</label>
+                <input type="number" id="kmRecorridos" placeholder="150" value="150">
+            </div>
+            
+            <div class="form-group">
+                <label>⛽ Consumo del auto (km/litro)</label>
+                <input type="number" id="consumoAuto" placeholder="12" value="12">
+            </div>
+            
+            <div class="form-group">
+                <label>💵 Precio nafta (por litro)</label>
+                <input type="number" id="precioNafta" placeholder="850" value="850">
+            </div>
+            
+            <div class="form-group">
+                <label>💸 Gastos adicionales (por día)</label>
+                <input type="number" id="gastosAdicionales" placeholder="500" value="500">
+            </div>
+            
+            <div class="taxi-options" id="taxiOptions">
+                <div class="employee-section">
+                    <div class="form-group">
+                        <label>👤 Entrega al empleado (%)</label>
+                        <select id="employeePercentage">
+                            <option value="">Seleccionar porcentaje</option>
+                            <option value="5">5%</option>
+                            <option value="10">10%</option>
+                            <option value="15">15%</option>
+                            <option value="20">20%</option>
+                            <option value="25">25%</option>
+                            <option value="30">30%</option>
+                            <option value="35">35%</option>
+                            <option value="40">40%</option>
+                            <option value="45">45%</option>
+                            <option value="50">50%</option>
+                        </select>
+                    </div>
+                    <button type="button" class="calculate-btn" id="calculateEmployee" disabled>
+                        Calcular Entrega al Empleado
+                    </button>
+                </div>
+            </div>
+            
+            <button class="calculate-btn" id="calculateBtn">
+                🧮 CALCULAR GANANCIAS REALES
+            </button>
+        </div>
+        
+        <div class="card earnings-card">
+            <h2>💰 Tus Ganancias Reales</h2>
+            
+            <div class="earnings-item">
+                <div class="earnings-label">Ganancia por hora</div>
+                <div class="earnings-amount" id="gananciaPorHora">$-641</div>
+            </div>
+            
+            <div class="earnings-item">
+                <div class="earnings-label">Ganancia diaria NETA</div>
+                <div class="earnings-amount" id="gananciaDiaria">$-5125</div>
+            </div>
+            
+            <div class="earnings-item">
+                <div class="earnings-label">Ganancia semanal</div>
+                <div class="earnings-amount" id="gananciaSemanal">$-30750</div>
+            </div>
+            
+            <div class="earnings-item">
+                <div class="earnings-label">Ganancia mensual</div>
+                <div class="earnings-amount" id="gananciaMensual">$-133148</div>
+            </div>
+            
+            <div class="earnings-item">
+                <div class="earnings-label">Gastos totales por día</div>
+                <div class="earnings-amount" id="gastosTotales">$13125</div>
+            </div>
+            
+            <div class="employee-result" id="employeeResult">
+                <h4>👤 Cálculo para Empleado</h4>
+                <div class="earnings-label">Porcentaje seleccionado: <span id="selectedPercentage"></span>%</div>
+                <div class="earnings-label">Monto para el empleado</div>
+                <div class="final-amount" id="employeeAmount">$0</div>
+                <div class="earnings-label">Tu ganancia restante</div>
+                <div class="final-amount" id="remainingAmount">$0</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedPlatform = null;
+        let currentEarnings = { porHora: 0, diaria: 0, semanal: 0, mensual: 0, gastosTotales: 0 };
+        
+        document.querySelectorAll('.platform-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedPlatform = this.dataset.platform;
+                const taxiOptions = document.getElementById('taxiOptions');
+                if (selectedPlatform === 'taxi') {
+                    taxiOptions.classList.add('show');
+                } else {
+                    taxiOptions.classList.remove('show');
+                    document.getElementById('employeeResult').classList.remove('show');
+                }
+            });
+        });
+        
+        function formatCurrency(amount) { return `$${Math.round(amount).toLocaleString()}`; }
+        
+        function calculateEarnings() {
+            const gananciaBruta = parseFloat(document.getElementById('gananciaBruta').value) || 0;
+            const horasTrabajadas = parseFloat(document.getElementById('horasTrabajadas').value) || 0;
+            const diasTrabajados = parseFloat(document.getElementById('diasTrabajados').value) || 0;
+            const kmRecorridos = parseFloat(document.getElementById('kmRecorridos').value) || 0;
+            const consumoAuto = parseFloat(document.getElementById('consumoAuto').value) || 0;
+            const precioNafta = parseFloat(document.getElementById('precioNafta').value) || 0;
+            const gastosAdicionales = parseFloat(document.getElementById('gastosAdicionales').value) || 0;
+            const litrosPorDia = consumoAuto > 0 ? kmRecorridos / consumoAuto : 0;
+            const costoCombustibleDiario = litrosPorDia * precioNafta;
+            const gastosTotalesDiarios = costoCombustibleDiario + gastosAdicionales;
+            const gananciaDiariaNeta = gananciaBruta - gastosTotalesDiarios;
+            const gananciaPorHora = horasTrabajadas > 0 ? gananciaDiariaNeta / horasTrabajadas : 0;
+            const gananciaSemanal = gananciaDiariaNeta * diasTrabajados;
+            const gananciaMensual = gananciaSemanal * 4.33;
+            currentEarnings = { porHora: gananciaPorHora, diaria: gananciaDiariaNeta, semanal: gananciaSemanal, mensual: gananciaMensual, gastosTotales: gastosTotalesDiarios };
+            document.getElementById('gananciaPorHora').textContent = formatCurrency(gananciaPorHora);
+            document.getElementById('gananciaDiaria').textContent = formatCurrency(gananciaDiariaNeta);
+            document.getElementById('gananciaSemanal').textContent = formatCurrency(gananciaSemanal);
+            document.getElementById('gananciaMensual').textContent = formatCurrency(gananciaMensual);
+            document.getElementById('gastosTotales').textContent = formatCurrency(gastosTotalesDiarios);
+        }
+        
+        function calculateEmployeePayment() {
+            const percentage = parseFloat(document.getElementById('employeePercentage').value);
+            if (!percentage || currentEarnings.diaria <= 0) { alert('Por favor selecciona un porcentaje y asegúrate de tener ganancias positivas'); return; }
+            const employeeAmount = currentEarnings.diaria * (percentage / 100);
+            const remainingAmount = currentEarnings.diaria - employeeAmount;
+            document.getElementById('selectedPercentage').textContent = percentage;
+            document.getElementById('employeeAmount').textContent = formatCurrency(employeeAmount);
+            document.getElementById('remainingAmount').textContent = formatCurrency(remainingAmount);
+            document.getElementById('employeeResult').classList.add('show');
+        }
+        
+        document.getElementById('calculateBtn').addEventListener('click', function(e) { e.preventDefault(); calculateEarnings(); });
+        document.getElementById('calculateEmployee').addEventListener('click', function(e) { e.preventDefault(); calculateEmployeePayment(); });
+        document.getElementById('employeePercentage').addEventListener('change', function() { const btn = document.getElementById('calculateEmployee'); btn.disabled = !this.value; });
+        document.querySelectorAll('input[type="number"]').forEach(input => { input.addEventListener('input', function() { if (selectedPlatform !== 'taxi') { calculateEarnings(); } }); });
+        document.querySelectorAll('.platform-btn').forEach(btn => { btn.addEventListener('click', function() { setTimeout(() => { calculateEarnings(); }, 100); }); });
+        calculateEarnings();
+    </script>
+</body>
+</html>
+
+
