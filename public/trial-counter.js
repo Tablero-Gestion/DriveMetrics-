@@ -7,7 +7,7 @@
     
     class TrialCounter {
         constructor() {
-            this.trialDays = 7; // Días totales de prueba
+            this.trialDays = 10; // Días totales de prueba (cambiado de 7 a 10)
             this.storageKey = 'drivemetrics_trial_start';
             this.userKey = 'drivemetrics_user';
             this.sessionKey = 'drivemetrics_session_token';
@@ -139,19 +139,15 @@
         }
 
         hasActiveSubscription() {
-            // Verificar si el usuario tiene suscripción activa
             try {
                 if (window.paymentSystem?.subscriptionStatus?.has_access) {
                     return true;
                 }
-                
-                // Verificar otros indicadores de suscripción
                 const subscriptionData = localStorage.getItem('subscription_status');
                 if (subscriptionData) {
                     const status = JSON.parse(subscriptionData);
                     return status.active === true || status.has_access === true;
                 }
-                
                 return false;
             } catch (e) {
                 console.warn('Error checking subscription status:', e);
@@ -162,28 +158,14 @@
         updateCounter() {
             const counterElement = document.getElementById('trial-counter');
             const bannerElement = document.getElementById('trial-banner');
-            
             if (!counterElement || !bannerElement) return;
 
             const user = this.getCurrentUser();
-            
-            // Si no hay usuario, ocultar el banner
-            if (!user) {
-                bannerElement.style.display = 'none';
-                return;
-            }
+            if (!user) { bannerElement.style.display = 'none'; return; }
+            if (this.hasActiveSubscription()) { bannerElement.style.display = 'none'; return; }
 
-            // Si tiene suscripción activa, ocultar el banner
-            if (this.hasActiveSubscription()) {
-                bannerElement.style.display = 'none';
-                return;
-            }
-
-            // Mostrar el banner
             bannerElement.style.display = 'block';
             const timeRemaining = this.getRemainingTime();
-
-            // Limpiar clases anteriores
             bannerElement.classList.remove('trial-warning', 'trial-urgent', 'trial-expired');
 
             if (timeRemaining.expired) {
@@ -200,18 +182,16 @@
                 counterElement.innerHTML = `⚠️ ${timeRemaining.days} día restante`;
                 bannerElement.classList.add('trial-warning');
             } else {
+                // Mostrar días restantes (bajará automáticamente cada día al recalcular)
                 counterElement.innerHTML = `✨ ${timeRemaining.days} días restantes`;
             }
         }
 
         showSubscriptionModal() {
-            // Usar el modal del sistema de pagos si existe
             if (window.paymentSystem && typeof window.paymentSystem.showSubscriptionModal === 'function') {
                 window.paymentSystem.showSubscriptionModal();
                 return;
             }
-
-            // Crear modal simple si no existe el sistema de pagos
             this.createSimpleSubscriptionModal();
         }
 
