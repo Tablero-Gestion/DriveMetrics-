@@ -565,6 +565,9 @@
                     const section = params.get('section');
                     const map = { predictor: '#predictor', alerts: '#alerts', ltc: '#ltc', challenge: '#challenge' };
                     if (section && map[section]) {
+                        // ocultar calculadora/datos de trabajo
+                        const calc = document.getElementById('calcRoot');
+                        if (calc) { calc.style.display = 'none'; }
                         const el = document.querySelector(map[section]);
                         if (el) { el.classList.remove('hidden'); el.style.display = ''; setTimeout(()=> el.scrollIntoView({behavior:'smooth'}), 200); }
                     }
