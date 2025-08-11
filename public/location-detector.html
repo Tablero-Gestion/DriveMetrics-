@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Ubicación - Zonas Premium</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .detect-btn { background: white; color: #6366f1; padding: 16px 32px; border: none; border-radius: 50px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 25px rgba(0,0,0,0.15); transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; }
+        .detect-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(0,0,0,0.2); }
+        .detect-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 18px; font-weight: 600; color: #374151; }
+        .icon { font-size: 24px; }
+        .loading { display: none; text-align: center; padding: 20px; color: #6b7280; }
+        .loading.show { display: block; }
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f4f6; border-radius: 50%; border-top-color: #6366f1; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .location-info { background: #f8faff; padding: 16px; border-radius: 12px; margin-bottom: 16px; border-left: 4px solid #6366f1; }
+        .location-info h4 { color: #1f2937; margin-bottom: 8px; font-size: 16px; }
+        .location-info p { color: #6b7280; font-size: 14px; margin: 4px 0; }
+        .premium-zones { display: grid; gap: 12px; }
+        .zone-item { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
+        .zone-name { font-weight: 600; font-size: 16px; }
+        .zone-distance { background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 500; }
+        .earnings-comparison { display: grid; gap: 12px; }
+        .platform-earnings { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+        .platform-name { font-weight: 600; font-size: 16px; margin-bottom: 8px; }
+        .earnings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .earning-item { background: rgba(255,255,255,0.2); padding: 8px; border-radius: 8px; text-align: center; }
+        .earning-label { font-size: 12px; opacity: 0.9; }
+        .earning-value { font-size: 14px; font-weight: 600; margin-top: 2px; }
+        .schedule-item { background: #f3f4f6; padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .time-slot { font-weight: 600; color: #1f2937; }
+        .demand-level { padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 500; }
+        .high-demand { background: #fef3c7; color: #92400e; }
+        .medium-demand { background: #ddd6fe; color: #5b21b6; }
+        .low-demand { background: #e5e7eb; color: #374151; }
+        .error-message { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 16px; border-radius: 12px; margin-top: 16px; display: none; }
+        .error-message.show { display: block; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; gap: 16px; } .detect-btn { padding: 12px 24px; font-size: 14px; } }
+    </style>
+    <meta name="robots" content="noindex" />
+</head>
+<body>
+    <div class="header">
+        <button class="detect-btn" id="detectLocationBtn">📍 Detectar Mi Ubicación</button>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h3><span class="icon">📍</span>Tu Zona Actual</h3>
+            <div id="currentLocationContent"><p style="color:#6b7280; text-align:center; padding:20px;">Detecta tu ubicación para análisis personalizado</p></div>
+            <div class="loading" id="locationLoading"><div class="spinner"></div><p style="margin-top:12px;">Detectando tu ubicación...</p></div>
+        </div>
+        <div class="card">
+            <h3><span class="icon">🔥</span>Zonas Premium de Tu Ciudad</h3>
+            <div id="premiumZonesContent"><div class="loading show"><p>Cargando zonas...</p></div></div>
+        </div>
+        <div class="card">
+            <h3><span class="icon">⚡</span>Comparación de Ganancias</h3>
+            <div id="earningsContent"><div class="loading show"><p>Calculando ganancias por zona...</p></div></div>
+        </div>
+    </div>
+    <div class="container" style="margin-top:20px;">
+        <div class="card" style="grid-column:1/-1;">
+            <h3><span class="icon">🕐</span>Mejores Horarios por Zona</h3>
+            <div id="scheduleContent"><div class="loading show"><p>Analizando horarios óptimos...</p></div></div>
+        </div>
+    </div>
+    <div class="error-message" id="errorMessage"></div>
+    <script>
+        let userLocation = null; let premiumZones = [];
+        const cityData = {
+            'Buenos Aires': { zones:[ { name:'Puerto Madero', lat:-34.6118, lng:-58.3636, distance:0 }, { name:'Palermo', lat:-34.5875, lng:-58.4247, distance:0 }, { name:'Recoleta', lat:-34.5875, lng:-58.3974, distance:0 }, { name:'Microcentro', lat:-34.6037, lng:-58.3816, distance:0 }, { name:'Belgrano', lat:-34.5633, lng:-58.4522, distance:0 } ], earnings:{ uber:{peak:'$1200', normal:'$800', weekend:'$1500'}, didi:{peak:'$1100', normal:'$750', weekend:'$1350'}, rappi:{peak:'$900', normal:'$600', weekend:'$1100'}, taxi:{peak:'$1000', normal:'$700', weekend:'$1200'} } },
+            'Córdoba': { zones:[ { name:'Nueva Córdoba', lat:-31.4201, lng:-64.1888, distance:0 }, { name:'Centro', lat:-31.4201, lng:-64.1888, distance:0 }, { name:'Güemes', lat:-31.4135, lng:-64.1934, distance:0 }, { name:'Cerro de las Rosas', lat:-31.3648, lng:-64.2265, distance:0 } ], earnings:{ uber:{peak:'$900', normal:'$600', weekend:'$1100'}, didi:{peak:'$850', normal:'$550', weekend:'$1000'}, rappi:{peak:'$700', normal:'$450', weekend:'$850'}, taxi:{peak:'$800', normal:'$500', weekend:'$950'} } },
+            'default': { zones:[ { name:'Centro de la Ciudad', lat:0, lng:0, distance:0 }, { name:'Zona Comercial', lat:0, lng:0, distance:0 }, { name:'Distrito Financiero', lat:0, lng:0, distance:0 }, { name:'Zona Universitaria', lat:0, lng:0, distance:0 } ], earnings:{ uber:{peak:'$800', normal:'$500', weekend:'$1000'}, didi:{peak:'$750', normal:'$450', weekend:'$950'}, rappi:{peak:'$600', normal:'$400', weekend:'$750'}, taxi:{peak:'$700', normal:'$450', weekend:'$850'} } }
+        };
+        function calculateDistance(lat1, lon1, lat2, lon2){ const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; const c=2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R*c; }
+        async function getCityName(lat,lng){ try{ const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`); const d=await r.json(); if(d&&d.address){ return d.address.city||d.address.town||d.address.village||d.address.state||'Ciudad no identificada'; } return 'Ciudad no identificada'; } catch{ return 'Ciudad no identificada'; } }
+        function detectLocation(){ const btn=document.getElementById('detectLocationBtn'); const loading=document.getElementById('locationLoading'); const errorMsg=document.getElementById('errorMessage'); if(!navigator.geolocation){ showError('La geolocalización no es compatible con este navegador.'); return; } btn.disabled=true; btn.innerHTML='<div class="spinner"></div> Detectando...'; loading.classList.add('show'); errorMsg.classList.remove('show'); navigator.geolocation.getCurrentPosition(async (position)=>{ userLocation={ lat:position.coords.latitude, lng:position.coords.longitude, accuracy:position.coords.accuracy }; try{ const cityName=await getCityName(userLocation.lat,userLocation.lng); await loadLocationData(cityName); btn.innerHTML='✅ Ubicación Detectada'; loading.classList.remove('show'); } catch(e){ showError('Error procesando la ubicación: '+e.message); btn.disabled=false; btn.innerHTML='📍 Detectar Mi Ubicación'; loading.classList.remove('show'); } }, (error)=>{ const map={ 1:'Permiso denegado. Por favor permite el acceso a tu ubicación.', 2:'Información de ubicación no disponible.', 3:'Tiempo de espera agotado al obtener ubicación.' }; showError(map[error.code]||'Error desconocido'); btn.disabled=false; btn.innerHTML='📍 Detectar Mi Ubicación'; loading.classList.remove('show'); }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 }); }
+        async function loadLocationData(cityName){ const data=cityData[cityName]||cityData['default']; premiumZones=[...data.zones]; if(userLocation){ premiumZones.forEach(z=>{ z.distance = calculateDistance(userLocation.lat,userLocation.lng,z.lat,z.lng); }); premiumZones.sort((a,b)=>a.distance-b.distance); } updateCurrentLocation(cityName); updatePremiumZones(); updateEarningsComparison(data.earnings); updateSchedule(); }
+        function updateCurrentLocation(cityName){ const content=document.getElementById('currentLocationContent'); const accuracy=userLocation? Math.round(userLocation.accuracy):0; content.innerHTML = `<div class="location-info"><h4>📍 Ubicación Detectada</h4><p><strong>Ciudad:</strong> ${cityName}</p><p><strong>Coordenadas:</strong> ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}</p><p><strong>Precisión:</strong> ±${accuracy} metros</p></div><div style="background:#e0f2fe; padding:16px; border-radius:12px; margin-top:12px;"><p style="color:#0369a1; font-size:14px; margin:0;">✅ Análisis personalizado activado para tu zona</p></div>`; }
+        function updatePremiumZones(){ const content=document.getElementById('premiumZonesContent'); const zonesHtml=premiumZones.slice(0,5).map(zone=>`<div class="zone-item"><div class="zone-name">${zone.name}</div><div class="zone-distance">${zone.distance<1? Math.round(zone.distance*1000)+'m' : zone.distance.toFixed(1)+'km'}</div></div>`).join(''); content.innerHTML = `<div class="premium-zones">${zonesHtml}</div>`; }
+        function updateEarningsComparison(earnings){ const content=document.getElementById('earningsContent'); const platforms=[ {name:'Uber', key:'uber', icon:'🚗'}, {name:'DiDi', key:'didi', icon:'🚕'}, {name:'Rappi', key:'rappi', icon:'🛵'}, {name:'Taxi', key:'taxi', icon:'🚖'} ]; const html = platforms.map(p=>`<div class="platform-earnings"><div class="platform-name">${p.icon} ${p.name}</div><div class="earnings-grid"><div class="earning-item"><div class="earning-label">Hora Pico</div><div class="earning-value">${earnings[p.key].peak}</div></div><div class="earning-item"><div class="earning-label">Normal</div><div class="earning-value">${earnings[p.key].normal}</div></div><div class="earning-item"><div class="earning-label">Fin de Semana</div><div class="earning-value">${earnings[p.key].weekend}</div></div><div class="earning-item"><div class="earning-label">Promedio</div><div class="earning-value">${Math.round(( parseInt(earnings[p.key].peak.replace('$','')) + parseInt(earnings[p.key].normal.replace('$','')) + parseInt(earnings[p.key].weekend.replace('$','')) )/3)}</div></div></div></div>`).join(''); content.innerHTML = `<div class="earnings-comparison">${html}</div>`; }
+        function updateSchedule(){ const content=document.getElementById('scheduleContent'); const schedules=[ {time:'06:00 - 09:00', demand:'Alta', type:'high-demand', desc:'Rush matutino'}, {time:'09:00 - 12:00', demand:'Media', type:'medium-demand', desc:'Actividad comercial'}, {time:'12:00 - 14:00', demand:'Alta', type:'high-demand', desc:'Hora de almuerzo'}, {time:'14:00 - 18:00', demand:'Media', type:'medium-demand', desc:'Tarde regular'}, {time:'18:00 - 21:00', demand:'Alta', type:'high-demand', desc:'Rush vespertino'}, {time:'21:00 - 00:00', demand:'Media', type:'medium-demand', desc:'Vida nocturna'}, {time:'00:00 - 06:00', demand:'Baja', type:'low-demand', desc:'Madrugada'} ]; content.innerHTML = schedules.map(s=>`<div class="schedule-item"><div><div class="time-slot">${s.time}</div><div style="color:#6b7280; font-size:14px; margin-top:4px;">${s.desc}</div></div><div class="demand-level ${s.type}">${s.demand} Demanda</div></div>`).join(''); }
+        function showError(message){ const errorMsg=document.getElementById('errorMessage'); errorMsg.textContent=message; errorMsg.classList.add('show'); }
+        document.getElementById('detectLocationBtn').addEventListener('click', detectLocation);
+        window.addEventListener('load', ()=>{ setTimeout(()=>{ loadLocationData('default'); }, 800); });
+    </script>
+  </body>
+ </html>
+
+
