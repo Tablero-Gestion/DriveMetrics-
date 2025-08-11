@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/payment-styles.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
         .loading-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity .5s ease; }
         .loading-screen.hidden { opacity: 0; pointer-events: none; }
@@ -57,6 +58,9 @@
         .header { text-align: center; margin-bottom: 40px; color: white; }
         .header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
         .header p { font-size: 1.2rem; opacity: 0.9; }
+        .feature-buttons { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+        .feature-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #ffffff; color: #1f2a44; border: 0; padding: 12px 14px; border-radius: 10px; font-weight: 700; text-decoration: none; box-shadow: 0 6px 16px rgba(0,0,0,.12); transition: transform .15s ease, box-shadow .15s ease; }
+        .feature-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,.18); }
         .calculator-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
         .input-section { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .results-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); color: white; }
@@ -196,6 +200,13 @@
         <div class="header">
             <h1>🚗💰 Calculadora de Ganancias</h1>
             <p>Uber • Rappi • Pedidos Ya • Argentina</p>
+            <div class="feature-buttons">
+                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/#predictor">🤖 Predictor IA Premium</a>
+                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/location-detector.html">📍 Mapa de Calor</a>
+                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/#alerts">🔔 Alertas Premium</a>
+                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/#ltc">🚦 Contador EN VIVO</a>
+                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/#challenge">🏆 Modo Challenge</a>
+            </div>
         </div>
 
         <div class="calculator-container">
@@ -327,7 +338,7 @@
         </div>
 
         <!-- SECCIÓN PREDICTOR IA -->
-        <div class="predictor-ia-section">
+        <div class="predictor-ia-section" id="predictor">
             <h2 class="section-title">🤖 Predictor IA Premium</h2>
             <div class="predictor-container">
                 <div class="prediccion-card">
@@ -354,7 +365,7 @@
         </div>
 
         <!-- MAPA DE CALOR DE GANANCIAS -->
-        <div class="mapa-calor-section">
+        <div class="mapa-calor-section" id="mapa">
             <h2 class="section-title">📍 Mapa de Calor - Zonas Premium</h2>
             <div class="ubicacion-detector">
                 <button id="detectar-ubicacion" class="detectar-btn">📍 Detectar Mi Ubicación</button>
@@ -383,7 +394,7 @@
         </div>
 
         <!-- ALERTAS DE HORARIOS PREMIUM (versión web simple) -->
-        <div class="premium-alerts-section">
+        <div class="premium-alerts-section" id="alerts">
             <h2 class="section-title">🔔 Alertas de Horarios Premium</h2>
             <div id="premium-alerts-root">
                 <div class="card">
@@ -714,7 +725,7 @@
 
         // Selección de plataforma
         document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.platform-btn');
+            const btn = e.target.closest('.platform-btn, .feature-btn');
             if (!btn) return;
             const url = btn.getAttribute('data-open-url');
             if (url) {
