@@ -201,11 +201,11 @@
             <h1>🚗💰 Calculadora de Ganancias</h1>
             <p>Uber • Rappi • Pedidos Ya • Argentina</p>
             <div class="feature-buttons">
-                <a class="feature-btn" href="#" data-scroll="#predictor">🤖 Predictor IA Premium</a>
+                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/?section=predictor">🤖 Predictor IA Premium</a>
                 <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/location-detector.html">📍 Mapa de Calor</a>
-                <a class="feature-btn" href="#" data-scroll="#alerts">🔔 Alertas Premium</a>
-                <a class="feature-btn" href="#" data-scroll="#ltc">🚦 Contador EN VIVO</a>
-                <a class="feature-btn" href="#" data-scroll="#challenge">🏆 Modo Challenge</a>
+                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/?section=alerts">🔔 Alertas Premium</a>
+                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/?section=ltc">🚦 Contador EN VIVO</a>
+                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/?section=challenge">🏆 Modo Challenge</a>
             </div>
         </div>
 
@@ -726,14 +726,7 @@
             const btn = e.target.closest('.platform-btn, .feature-btn');
             if (!btn) return;
             const url = btn.getAttribute('data-open-url');
-            const scrollTo = btn.getAttribute('data-scroll');
             if (url) { window.open(url, '_blank'); return; }
-            if (scrollTo) {
-                // asegurar que la sección esté visible si estaba oculta
-                const target = document.querySelector(scrollTo);
-                if (target) { target.classList.remove('hidden'); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-                return;
-            }
             document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             plataformaSeleccionada = btn.getAttribute('data-platform');
