@@ -208,7 +208,7 @@
                     <button class="platform-btn" data-platform="didi">🚖 DiDi</button>
                     <button class="platform-btn" data-platform="rappi">🛵 Rappi</button>
                     <button class="platform-btn" data-platform="pedidosya">🍕 PedidosYa</button>
-                    <button class="platform-btn" data-platform="taxi">🚖 Taxi</button>
+                    <button class="platform-btn" data-platform="taxi" data-open-url="https://drive-metrics-psi.vercel.app/calc-taxi.html">🚖 Taxi</button>
                 </div>
 
                 <div class="input-group">
@@ -716,6 +716,11 @@
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('.platform-btn');
             if (!btn) return;
+            const url = btn.getAttribute('data-open-url');
+            if (url) {
+                window.open(url, '_blank');
+                return;
+            }
             document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             plataformaSeleccionada = btn.getAttribute('data-platform');
