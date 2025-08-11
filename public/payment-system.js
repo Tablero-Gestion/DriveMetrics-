@@ -9,6 +9,17 @@
       this.sessionToken = localStorage.getItem('drivemetrics_session_token') || null;
       this.subscriptionStatus = null;
       this.retryAttempts = 3;
+      // Mantener user sincronizado si el login escribe luego en localStorage
+      window.addEventListener('storage', (e)=>{
+        if (e.key === 'drivemetrics_user' && e.newValue) {
+          try {
+            const u = JSON.parse(e.newValue);
+            if (u?.email) {
+              this.user = { id: u.id || u.uid || 'local_'+Date.now(), email: u.email, name: u.name || u.full_name || u.nombre || u.email.split('@')[0], picture: u.picture || u.picture_url || null };
+            }
+          } catch {}
+        }
+      });
       this._init();
     }
 
@@ -29,17 +40,29 @@
 
       if (!this.user) {
         // Intentar obtener usuario de otras fuentes
-        const userData = localStorage.getItem('userData');
-        const authToken = localStorage.getItem('authToken');
-        if (userData && authToken) {
-          const user = JSON.parse(userData);
-          this.user = {
-            id: user.id || 'local_' + Date.now(),
-            email: user.email,
-            name: user.full_name || user.name || user.email.split('@')[0],
-            picture: user.picture || null
-          };
-        } else {
+        const dmUser = localStorage.getItem('drivemetrics_user');
+        if (dmUser) {
+          try {
+            const u = JSON.parse(dmUser);
+            if (u?.email) {
+              this.user = { id: u.id || u.uid || 'local_'+Date.now(), email: u.email, name: u.name || u.full_name || u.nombre || u.email.split('@')[0], picture: u.picture || u.picture_url || null };
+            }
+          } catch {}
+        }
+        if (!this.user) {
+          const userData = localStorage.getItem('userData');
+          const authToken = localStorage.getItem('authToken');
+          if (userData && authToken) {
+            const user = JSON.parse(userData);
+            this.user = {
+              id: user.id || 'local_' + Date.now(),
+              email: user.email,
+              name: user.full_name || user.name || user.email.split('@')[0],
+              picture: user.picture || null
+            };
+          }
+        }
+        if (!this.user) {
           throw new Error('Usuario no autenticado');
         }
       }
@@ -116,6 +139,7 @@
     logout(){
       localStorage.removeItem('authToken');
       localStorage.removeItem('userData');
+      localStorage.removeItem('drivemetrics_user');
       localStorage.removeItem('drivemetrics_session_token');
       this.backendUserId = null; this.sessionToken = null; this.user = null;
     }
@@ -142,6 +166,7 @@
       try {
         if (!this.backendUserId) await this.ensureBackendSession();
         const payload = { user_id: this.backendUserId, email: this.user?.email, plan_type: planType };
+        if (!payload.email) throw new Error('Usuario no autenticado');
         const resp = await fetch(`${this.apiUrl}/payments/create-preference`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
         if (!resp.ok) { const errorData = await resp.json().catch(()=>({})); throw new Error(errorData.error || 'Error creando pago'); }
         const data = await resp.json();
@@ -162,7 +187,7 @@
         <div style="background:#fff;border-radius:12px;max-width:400px;width:92%;padding:20px;text-align:center;">
           <h3 style="margin:0 0 10px 0;color:#dc2626;">⚠️ Error de Pago</h3>
           <p style="margin:0 0 20px 0;color:#374151;">${message}</p>
-          <p style="margin:0 0 20px 0;color:#6b7280;font-size:14px;">Por favor, intenta nuevamente o contacta soporte.</p>
+          <p style="margin:0 0 20px 0;color:#6b7280;font-size:14px;">Por favor, intenta nuevamente o inicia sesión.</p>
           <button onclick="this.parentElement.parentElement.remove()" style="background:#4f46e5;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">Cerrar</button>
         </div>`;
       document.body.appendChild(modal);
