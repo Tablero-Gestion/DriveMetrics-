@@ -77,6 +77,13 @@
         .export-btn { background: #28a745; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin: 10px 5px; }
         @media (max-width: 768px) { .calculator-container { grid-template-columns: 1fr; } .platform-selector { grid-template-columns: 1fr; } .header h1 { font-size: 2rem; } }
 
+        /* Opciones Taxi y cálculo para empleado */
+        .taxi-options { display: none; background: #f8faff; padding: 16px; border-radius: 8px; margin-top: 16px; border: 2px solid #e0e7ff; }
+        .taxi-options.show { display: block; }
+        .employee-result { background: rgba(255,255,255,0.15); padding: 16px; border-radius: 8px; margin-top: 12px; display: none; }
+        .employee-result.show { display: block; }
+        .final-amount { font-size: 20px; font-weight: 700; }
+
         /* Predictor IA (según diseño solicitado) */
         .predictor-ia-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; border-radius: 15px; margin: 30px 0; color: white; }
         .predictor-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
@@ -201,6 +208,7 @@
                     <button class="platform-btn" data-platform="didi">🚖 DiDi</button>
                     <button class="platform-btn" data-platform="rappi">🛵 Rappi</button>
                     <button class="platform-btn" data-platform="pedidosya">🍕 PedidosYa</button>
+                    <button class="platform-btn" data-platform="taxi">🚖 Taxi</button>
                 </div>
 
                 <div class="input-group">
@@ -238,6 +246,28 @@
                     <input type="number" id="gastos-adicionales" placeholder="500" value="500">
                 </div>
 
+                <div class="taxi-options" id="taxiOptions">
+                    <div class="input-group">
+                        <label>👤 Entrega al empleado (%)</label>
+                        <select id="employeePercentage">
+                            <option value="">Seleccionar porcentaje</option>
+                            <option value="5">5%</option>
+                            <option value="10">10%</option>
+                            <option value="15">15%</option>
+                            <option value="20">20%</option>
+                            <option value="25">25%</option>
+                            <option value="30">30%</option>
+                            <option value="35">35%</option>
+                            <option value="40">40%</option>
+                            <option value="45">45%</option>
+                            <option value="50">50%</option>
+                        </select>
+                    </div>
+                    <button type="button" class="calculate-btn" id="calculateEmployee" disabled>
+                        Calcular Entrega al Empleado
+                    </button>
+                </div>
+
                 <button class="calculate-btn" onclick="calcular()">
                     🧮 CALCULAR GANANCIAS REALES
                 </button>
@@ -270,6 +300,15 @@
                 <div class="result-card">
                     <div class="result-title">Gastos totales por día</div>
                     <div class="result-value" id="gastos-totales">$0</div>
+                </div>
+
+                <div class="employee-result" id="employeeResult">
+                    <h3 class="section-title">👤 Cálculo para Empleado (Taxi)</h3>
+                    <div class="result-title">Porcentaje seleccionado: <span id="selectedPercentage"></span>%</div>
+                    <div class="result-title">Monto para el empleado</div>
+                    <div class="result-value final-amount" id="employeeAmount">$0</div>
+                    <div class="result-title">Tu ganancia restante</div>
+                    <div class="result-value final-amount" id="remainingAmount">$0</div>
                 </div>
             </div>
         </div>
@@ -680,6 +719,14 @@
             document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             plataformaSeleccionada = btn.getAttribute('data-platform');
+            const taxiOptions = document.getElementById('taxiOptions');
+            const employeeResult = document.getElementById('employeeResult');
+            if (plataformaSeleccionada === 'taxi') {
+                taxiOptions?.classList.add('show');
+            } else {
+                taxiOptions?.classList.remove('show');
+                employeeResult?.classList.remove('show');
+            }
             calcular();
         });
 
@@ -844,6 +891,30 @@
             if (e.target.matches('input')) { if (document.getElementById('ganancia-bruta').value) calcular(); }
         });
         window.addEventListener('load', ()=> setTimeout(calcular, 500));
+
+        // Taxi: cálculo de entrega al empleado
+        function calculateEmployeePayment() {
+            const percentage = parseFloat(document.getElementById('employeePercentage')?.value);
+            if (!percentage || isNaN(percentage)) { alert('Seleccioná un porcentaje'); return; }
+            // Tomar la ganancia diaria neta actual del DOM
+            const txt = document.getElementById('ganancia-dia')?.textContent || '$0';
+            const neto = Number((txt||'').replace(/[^0-9.-]/g,'')) || 0;
+            if (neto <= 0) { alert('Necesitás tener ganancias positivas para repartir'); return; }
+            const employeeAmount = neto * (percentage/100);
+            const remainingAmount = neto - employeeAmount;
+            document.getElementById('selectedPercentage').textContent = String(percentage);
+            document.getElementById('employeeAmount').textContent = `$${Math.round(employeeAmount).toLocaleString()}`;
+            document.getElementById('remainingAmount').textContent = `$${Math.round(remainingAmount).toLocaleString()}`;
+            document.getElementById('employeeResult')?.classList.add('show');
+        }
+        document.addEventListener('change', (e)=>{
+            const sel = e.target.closest('#employeePercentage');
+            if (sel){ const btn = document.getElementById('calculateEmployee'); if(btn) btn.disabled = !sel.value; }
+        });
+        document.addEventListener('click', (e)=>{
+            const btn = e.target.closest('#calculateEmployee');
+            if (btn) calculateEmployeePayment();
+        });
 
         // === Alertas de horarios premium (sin React) ===
         const premiumSchedules = [
