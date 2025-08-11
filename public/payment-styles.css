@@ -573,3 +573,166 @@ body.payment-page {
     padding: 1.5rem;
   }
 }
+
+
+/* ============================================
+   DRIVEMETRICS - SISTEMA DE PAGOS CSS MÓVIL (append)
+   ============================================ */
+
+/* Variables CSS optimizadas para móvil */
+:root {
+  --mobile-padding: 1rem;
+  --mobile-margin: 0.75rem;
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Reset y estilos base para móvil */
+body.payment-page.mobile {
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-gradient);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Contenedor principal móvil */
+.payment-container.mobile {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-gradient);
+}
+
+.payment-header.mobile {
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+  color: white;
+}
+
+.payment-header.mobile h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.payment-header.mobile p {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* Contenedor auth móvil */
+.auth-container.mobile {
+  flex: 1;
+  background: var(--bg-primary);
+  border-radius: 24px 24px 0 0;
+  margin-top: 1rem;
+  padding: 0;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-container.mobile::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+/* Tabs móvil */
+.tab-container.mobile { position: relative; background: var(--bg-primary); }
+.tab-navigation.mobile { display:flex; background: var(--bg-secondary); border-bottom:1px solid var(--border-color); }
+.tab-button.mobile { flex:1; background:none; border:none; padding:1rem; font-size:1rem; font-weight:600; color:var(--text-secondary); transition:var(--transition); position:relative; }
+.tab-button.mobile.active { color: var(--primary-color); }
+.tab-indicator.mobile { position:absolute; bottom:0; height:3px; background:var(--primary-color); border-radius:3px 3px 0 0; transition:var(--transition); }
+.tab-content.mobile { padding: 2rem var(--mobile-padding); display:none; animation: fadeInUp .4s ease-out; }
+.tab-content.mobile.active { display:block; }
+
+@keyframes fadeInUp { from { opacity:0; transform: translateY(20px);} to { opacity:1; transform: translateY(0);} }
+
+/* Formularios móvil */
+.auth-form.mobile { display:flex; flex-direction:column; gap:1.5rem; }
+.form-group.mobile { display:flex; flex-direction:column; position:relative; }
+.form-input.mobile { padding:1rem; border:2px solid var(--border-color); border-radius: var(--border-radius); background: var(--bg-primary); transition: var(--transition); -webkit-appearance:none; appearance:none; }
+.form-input.mobile:focus { outline:none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(79,70,229,.1); transform: translateY(-1px); }
+.form-input.mobile::placeholder { color: var(--text-light); }
+.form-label.mobile { position:absolute; top:1rem; left:1rem; color:var(--text-light); font-size:1rem; font-weight:500; pointer-events:none; transition: var(--transition); background: var(--bg-primary); padding:0 4px; }
+.form-input.mobile:focus + .form-label.mobile, .form-input.mobile:not(:placeholder-shown) + .form-label.mobile { transform: translateY(-1.5rem) scale(.85); color: var(--primary-color); font-weight:600; }
+.form-error.mobile { color: var(--danger-color); font-size:.875rem; margin-top:.5rem; font-weight:500; }
+
+/* Botones móvil */
+.btn.mobile { display:flex; align-items:center; justify-content:center; padding:1rem 1.5rem; border:none; border-radius: var(--border-radius); font-size:1rem; font-weight:600; min-height:56px; position:relative; overflow:hidden; -webkit-tap-highlight-color:transparent; }
+.btn.mobile::before { content:''; position:absolute; inset:0; background: rgba(255,255,255,.1); transform: translateX(-100%); transition: transform .3s ease; }
+.btn.mobile:active::before { transform: translateX(0); }
+.btn-primary.mobile { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%); color:#fff; box-shadow: var(--shadow-sm); }
+.btn-success.mobile { background: linear-gradient(135deg, var(--success-color) 0%, var(--success-hover) 100%); color:#fff; box-shadow: var(--shadow-sm); }
+.btn-secondary.mobile { background: var(--bg-secondary); color: var(--text-secondary); border:2px solid var(--border-color); }
+.btn-full.mobile { width:100%; }
+.btn-large.mobile { padding:1.25rem 2rem; font-size:1.125rem; min-height:60px; }
+
+/* Modal suscripción móvil */
+.subscription-modal.mobile { position:fixed; inset:0; background: rgba(0,0,0,.6); display:flex; align-items:flex-end; justify-content:center; z-index:10000; opacity:0; visibility:hidden; transition: var(--transition); backdrop-filter: blur(4px); }
+.subscription-modal.mobile.active { opacity:1; visibility:visible; }
+.modal-content.mobile { background: var(--bg-primary); border-radius:24px 24px 0 0; width:100%; max-height:90vh; padding:1.5rem; box-shadow: var(--shadow-lg); transform: translateY(100%); transition: var(--transition); position:relative; }
+.modal-content.mobile::before { content:''; position:absolute; top:12px; left:50%; transform:translateX(-50%); width:40px; height:4px; background: var(--border-color); border-radius:2px; }
+.subscription-modal.mobile.active .modal-content.mobile { transform: translateY(0); }
+.modal-header.mobile { text-align:center; margin-bottom:2rem; padding-top:1rem; }
+.modal-header.mobile h3 { margin:0 0 .5rem 0; font-size:1.5rem; font-weight:700; }
+.modal-header.mobile p { margin:0; color: var(--text-secondary); font-size:1rem; }
+.modal-plans.mobile { display:flex; flex-direction:column; gap:1rem; margin-bottom:2rem; }
+.modal-footer.mobile { text-align:center; padding-top:1rem; border-top:1px solid var(--border-color); }
+
+/* Planes móvil */
+.plan-option.mobile { background: var(--bg-secondary); border:2px solid var(--border-color); border-radius: var(--border-radius); padding:1.5rem; transition: var(--transition); position:relative; }
+.plan-option.mobile:active { transform: scale(.98); border-color: var(--primary-color); }
+.plan-option.mobile.featured { border-color: var(--success-color); background: linear-gradient(135deg, rgba(22,163,74,.05) 0%, rgba(22,163,74,.1) 100%); }
+.plan-option.mobile.featured::after { content:'Más Popular'; position:absolute; top:-8px; right:1rem; background: var(--success-color); color:#fff; padding:.25rem .75rem; border-radius:12px; font-size:.75rem; font-weight:700; }
+.plan-info.mobile { display:flex; justify-content:space-between; align-items:center; }
+.plan-details.mobile h4 { margin:0 0 .25rem 0; font-size:1.125rem; font-weight:700; }
+.plan-details.mobile p { margin:0; color: var(--text-secondary); font-size:.9rem; }
+.plan-price.mobile { text-align:right; }
+.plan-price.mobile .amount { font-size:1.5rem; font-weight:800; color: var(--primary-color); }
+.plan-price.mobile .period { font-size:.8rem; color: var(--text-secondary); }
+
+/* Estados y feedback */
+.loading-spinner.mobile { display:inline-block; width:20px; height:20px; border:2px solid transparent; border-top:2px solid currentColor; border-radius:50%; animation: spin 1s linear infinite; margin-right:.5rem; }
+
+.alert.mobile { padding:1rem; border-radius: var(--border-radius); margin-bottom:1rem; display:flex; align-items:center; font-size:.9rem; font-weight:500; }
+.alert-success.mobile { background: rgba(34,197,94,.1); color: var(--success-color); border:1px solid rgba(34,197,94,.2); }
+.alert-danger.mobile { background: rgba(239,68,68,.1); color: var(--danger-color); border:1px solid rgba(239,68,68,.2); }
+
+/* Microinteracciones */
+.fade-in.mobile { animation: fadeIn .3s ease-out; }
+.slide-up.mobile { animation: slideUp .4s cubic-bezier(.4,0,.2,1); }
+@keyframes slideUp { from { opacity:0; transform: translateY(30px);} to { opacity:1; transform: translateY(0);} }
+
+/* Touch feedback */
+.btn.mobile:active, .tab-button.mobile:active, .plan-option.mobile:active { transform: scale(.98); }
+
+/* Safe area para iPhones */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .payment-header.mobile { padding-top: calc(env(safe-area-inset-top) + 2rem); }
+}
+
+/* Scroll suave */
+html { scroll-behavior: smooth; }
+
+/* Optimización pantallas pequeñas */
+@media (max-width: 375px) {
+  .auth-container.mobile { border-radius: 20px 20px 0 0; }
+  .tab-content.mobile { padding: 1.5rem 1rem; }
+  .form-input.mobile { font-size: 16px; }
+  .btn.mobile { min-height: 52px; font-size:.95rem; }
+}
