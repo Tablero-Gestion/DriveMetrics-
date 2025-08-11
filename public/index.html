@@ -564,6 +564,17 @@
                     const params = new URLSearchParams(window.location.search);
                     const section = params.get('section');
                     const map = { predictor: '#predictor', alerts: '#alerts', ltc: '#ltc', challenge: '#challenge' };
+                    const redirectMap = {
+                        predictor: '/predictor.html',
+                        alerts: '/alerts.html',
+                        ltc: '/live-counter.html',
+                        challenge: '/challenge.html'
+                    };
+                    // Redirigir a páginas dedicadas si llegan con ?section
+                    if (section && redirectMap[section]) {
+                        window.location.replace(redirectMap[section]);
+                        return;
+                    }
                     if (section && map[section]) {
                         // ocultar calculadora/datos de trabajo
                         const calc = document.getElementById('calcRoot');
