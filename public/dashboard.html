@@ -43,11 +43,20 @@
       </div>
     </div>
   </main>
+  <script src="/location.js"></script>
   <script>
+    // Inicializa el servicio de ubicación con botón flotante
+    window.addEventListener('load', function () {
+      if (window.LocationService) {
+        LocationService.init({ floatingButton: true, compact: false, showAddress: true });
+      }
+    });
     // Si venimos del login, podríamos recibir info por sessionStorage/localStorage en futuras iteraciones.
     // Aquí solo placeholders para que la página cargue.
   </script>
 </body>
 </html>
+
+
 
 

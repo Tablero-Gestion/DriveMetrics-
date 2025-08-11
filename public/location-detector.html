@@ -72,6 +72,7 @@
         </div>
     </div>
     <div class="error-message" id="errorMessage"></div>
+    <script src="/location.js"></script>
     <script>
         let userLocation = null; let premiumZones = [];
         const cityData = {
@@ -89,9 +90,22 @@
         function updateSchedule(){ const content=document.getElementById('scheduleContent'); const schedules=[ {time:'06:00 - 09:00', demand:'Alta', type:'high-demand', desc:'Rush matutino'}, {time:'09:00 - 12:00', demand:'Media', type:'medium-demand', desc:'Actividad comercial'}, {time:'12:00 - 14:00', demand:'Alta', type:'high-demand', desc:'Hora de almuerzo'}, {time:'14:00 - 18:00', demand:'Media', type:'medium-demand', desc:'Tarde regular'}, {time:'18:00 - 21:00', demand:'Alta', type:'high-demand', desc:'Rush vespertino'}, {time:'21:00 - 00:00', demand:'Media', type:'medium-demand', desc:'Vida nocturna'}, {time:'00:00 - 06:00', demand:'Baja', type:'low-demand', desc:'Madrugada'} ]; content.innerHTML = schedules.map(s=>`<div class="schedule-item"><div><div class="time-slot">${s.time}</div><div style="color:#6b7280; font-size:14px; margin-top:4px;">${s.desc}</div></div><div class="demand-level ${s.type}">${s.demand} Demanda</div></div>`).join(''); }
         function showError(message){ const errorMsg=document.getElementById('errorMessage'); errorMsg.textContent=message; errorMsg.classList.add('show'); }
         document.getElementById('detectLocationBtn').addEventListener('click', detectLocation);
-        window.addEventListener('load', ()=>{ setTimeout(()=>{ loadLocationData('default'); }, 800); });
+        window.addEventListener('load', ()=>{ 
+            // Inicializa el servicio de ubicación con botón flotante en esta pantalla también
+            if (window.LocationService) {
+              LocationService.init({ floatingButton: true, compact: true, showAddress: false });
+              // Suscribir para actualizar cabecera si se desea
+              LocationService.subscribe((data)=>{
+                if (data.city && data.country) {
+                  document.title = `Detector de Ubicación - ${data.city}, ${data.country}`;
+                }
+              });
+            }
+            setTimeout(()=>{ loadLocationData('default'); }, 800); 
+        });
     </script>
   </body>
  </html>
+
 
 
