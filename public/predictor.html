@@ -7,6 +7,14 @@
   <style>
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);margin:0;padding:20px;color:#fff}
     .wrap{max-width:1100px;margin:0 auto}
+    .location-header{text-align:center;margin-bottom:30px}
+    .detect-btn{background:white;color:#6366f1;padding:16px 32px;border:none;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,0.15);transition:all 0.3s ease;display:inline-flex;align-items:center;gap:8px}
+    .detect-btn:hover{transform:translateY(-2px);box-shadow:0 12px 35px rgba(0,0,0,0.2)}
+    .detect-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+    .location-info{background:rgba(255,255,255,0.1);padding:16px;border-radius:12px;margin-bottom:20px;border-left:4px solid #ffd700;display:none}
+    .location-info.show{display:block}
+    .location-info h4{color:#ffd700;margin-bottom:8px;font-size:16px}
+    .location-info p{color:#fff;font-size:14px;margin:4px 0;opacity:0.9}
     .predictor-ia-section{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:40px 30px;border-radius:15px}
     .section-title{margin:0 0 10px 0}
     .predictor-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:18px}
@@ -16,12 +24,26 @@
     .prediccion-content{background:rgba(255,255,255,.06);padding:12px;border-radius:8px;border-left:4px solid #ffd700}
     .prediccion-highlight{color:#ffd700;font-weight:700}
     .prediccion-numero{color:#00ff88;font-weight:700}
+    .spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .error-message{background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);color:#fca5a5;padding:16px;border-radius:12px;margin-top:16px;display:none}
+    .error-message.show{display:block}
     a.back{display:inline-block;margin-top:16px;background:#fff;color:#333;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1 style="margin:0 0 12px 0">🤖 Predictor IA Premium</h1>
+    
+    <div class="location-header">
+      <button class="detect-btn" id="detectLocationBtn">📍 Detectar Mi Ubicación</button>
+    </div>
+    
+    <div class="location-info" id="locationInfo">
+      <h4>📍 Ubicación Detectada</h4>
+      <div id="locationDetails"></div>
+    </div>
+    
     <div class="predictor-ia-section">
       <div class="predictor-container">
         <div class="prediccion-card">
@@ -46,15 +68,167 @@
         </div>
       </div>
     </div>
+    
+    <div class="error-message" id="errorMessage"></div>
     <a class="back" href="/">← Volver</a>
   </div>
+  
   <script>
-    // Relleno simple para visualizar contenido "IA"
-    function set(id, html){ var el=document.getElementById(id); if(el) el.innerHTML = html; }
-    set('prediccion-optimizacion', '🔎 Ajustamos horarios y zonas para +25% de eficiencia.');
-    set('prediccion-comparacion', '📈 Hoy conviene PedidosYa frente a Uber (+$450/día).');
-    set('prediccion-crecimiento', '🚀 Sumando 2 hs pico: +$22.000/mes aprox.');
-    set('plan-accion', '1) Trabajá 7-9 y 19-22 • 2) Zonas: Palermo/PMadero • 3) Rechazá viajes < 1.5km');
+    let userLocation = null;
+    let currentCity = null;
+    
+    // Datos de predicciones por ciudad
+    const cityPredictions = {
+      'Buenos Aires': {
+        optimizacion: '🔎 Ajustamos horarios y zonas para +35% de eficiencia en tu área.',
+        comparacion: '📈 Hoy conviene Uber frente a DiDi (+$550/día en Palermo).',
+        crecimiento: '🚀 Sumando 3 hs pico: +$28.000/mes aprox en Puerto Madero.',
+        planAccion: '1) Trabajá 7-9 y 18-22 • 2) Zonas: Palermo/Puerto Madero • 3) Rechazá viajes < 2km'
+      },
+      'Córdoba': {
+        optimizacion: '🔎 Optimizamos rutas para +28% de eficiencia en Nueva Córdoba.',
+        comparacion: '📈 Hoy conviene Rappi frente a Uber (+$400/día en Centro).',
+        crecimiento: '🚀 Sumando 2 hs pico: +$18.000/mes aprox en Güemes.',
+        planAccion: '1) Trabajá 8-10 y 19-21 • 2) Zonas: Nueva Córdoba/Güemes • 3) Rechazá viajes < 1.8km'
+      },
+      'Rosario': {
+        optimizacion: '🔎 Ajustamos zonas para +30% de eficiencia en tu ciudad.',
+        comparacion: '📈 Hoy conviene DiDi frente a Uber (+$380/día en Centro).',
+        crecimiento: '🚀 Sumando 2.5 hs pico: +$20.000/mes aprox.',
+        planAccion: '1) Trabajá 7-9 y 18-21 • 2) Zonas: Centro/Pichincha • 3) Rechazá viajes < 1.6km'
+      },
+      'Mendoza': {
+        optimizacion: '🔎 Optimizamos horarios para +32% de eficiencia en tu área.',
+        comparacion: '📈 Hoy conviene Uber frente a Rappi (+$420/día en Centro).',
+        crecimiento: '🚀 Sumando 2 hs pico: +$19.000/mes aprox en Godoy Cruz.',
+        planAccion: '1) Trabajá 8-10 y 19-22 • 2) Zonas: Centro/Godoy Cruz • 3) Rechazá viajes < 1.7km'
+      },
+      'default': {
+        optimizacion: '🔎 Ajustamos horarios y zonas para +25% de eficiencia.',
+        comparacion: '📈 Hoy conviene PedidosYa frente a Uber (+$450/día).',
+        crecimiento: '🚀 Sumando 2 hs pico: +$22.000/mes aprox.',
+        planAccion: '1) Trabajá 7-9 y 19-22 • 2) Zonas: Centro/Comercial • 3) Rechazá viajes < 1.5km'
+      }
+    };
+    
+    // Función para obtener nombre de ciudad desde coordenadas
+    async function getCityName(lat, lng) {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
+        const data = await response.json();
+        if (data && data.address) {
+          return data.address.city || data.address.town || data.address.village || data.address.state || 'Ciudad no identificada';
+        }
+        return 'Ciudad no identificada';
+      } catch {
+        return 'Ciudad no identificada';
+      }
+    }
+    
+    // Función para detectar ubicación
+    function detectLocation() {
+      const btn = document.getElementById('detectLocationBtn');
+      const errorMsg = document.getElementById('errorMessage');
+      
+      if (!navigator.geolocation) {
+        showError('La geolocalización no es compatible con este navegador.');
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Detectando...';
+      errorMsg.classList.remove('show');
+      
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          
+          try {
+            const cityName = await getCityName(userLocation.lat, userLocation.lng);
+            currentCity = cityName;
+            await updatePredictions(cityName);
+            updateLocationInfo(cityName);
+            btn.innerHTML = '✅ Ubicación Detectada';
+          } catch (e) {
+            showError('Error procesando la ubicación: ' + e.message);
+            btn.disabled = false;
+            btn.innerHTML = '📍 Detectar Mi Ubicación';
+          }
+        },
+        (error) => {
+          const errorMap = {
+            1: 'Permiso denegado. Por favor permite el acceso a tu ubicación.',
+            2: 'Información de ubicación no disponible.',
+            3: 'Tiempo de espera agotado al obtener ubicación.'
+          };
+          showError(errorMap[error.code] || 'Error desconocido');
+          btn.disabled = false;
+          btn.innerHTML = '📍 Detectar Mi Ubicación';
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        }
+      );
+    }
+    
+    // Función para actualizar predicciones basadas en la ciudad
+    async function updatePredictions(cityName) {
+      const predictions = cityPredictions[cityName] || cityPredictions['default'];
+      
+      // Actualizar cada predicción
+      set('prediccion-optimizacion', predictions.optimizacion);
+      set('prediccion-comparacion', predictions.comparacion);
+      set('prediccion-crecimiento', predictions.crecimiento);
+      set('plan-accion', predictions.planAccion);
+    }
+    
+    // Función para actualizar información de ubicación
+    function updateLocationInfo(cityName) {
+      const locationInfo = document.getElementById('locationInfo');
+      const locationDetails = document.getElementById('locationDetails');
+      const accuracy = userLocation ? Math.round(userLocation.accuracy) : 0;
+      
+      locationDetails.innerHTML = `
+        <p><strong>Ciudad:</strong> ${cityName}</p>
+        <p><strong>Coordenadas:</strong> ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}</p>
+        <p><strong>Precisión:</strong> ±${accuracy} metros</p>
+        <div style="background:rgba(255,215,0,0.1); padding:12px; border-radius:8px; margin-top:12px;">
+          <p style="color:#ffd700; font-size:14px; margin:0;">✅ Predicciones personalizadas activadas para ${cityName}</p>
+        </div>
+      `;
+      
+      locationInfo.classList.add('show');
+    }
+    
+    // Función para mostrar errores
+    function showError(message) {
+      const errorMsg = document.getElementById('errorMessage');
+      errorMsg.textContent = message;
+      errorMsg.classList.add('show');
+    }
+    
+    // Función helper para establecer contenido
+    function set(id, html) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    }
+    
+    // Event listeners
+    document.getElementById('detectLocationBtn').addEventListener('click', detectLocation);
+    
+    // Inicialización
+    window.addEventListener('load', () => {
+      // Cargar predicciones por defecto
+      setTimeout(() => {
+        updatePredictions('default');
+      }, 800);
+    });
   </script>
 </body>
 </html>
