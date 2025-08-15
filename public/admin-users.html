@@ -151,7 +151,50 @@
         </div>
     </div>
     <script>
-        console.log('Panel de usuarios cargando...');
+        // Datos de usuarios de ejemplo
+        let users = [
+            { id: 1, name: "Carlos Mendez", email: "carlos.mendez@email.com", phone: "+54 11 1234-5678", city: "Buenos Aires", plan: "premium", registrationDate: "2025-01-15", status: "active", lastLogin: "2025-08-14", trialEndDate: null, paymentDate: "2025-01-20" },
+            { id: 2, name: "Ana Rodriguez", email: "ana.rodriguez@email.com", phone: "+54 351 987-6543", city: "Córdoba", plan: "trial", registrationDate: "2025-02-20", status: "active", lastLogin: "2025-08-13", trialEndDate: "2025-08-27", paymentDate: null },
+            { id: 3, name: "Miguel Santos", email: "miguel.santos@email.com", phone: "+54 341 456-7890", city: "Rosario", plan: "basic", registrationDate: "2025-03-10", status: "pending", lastLogin: "2025-08-10", trialEndDate: null, paymentDate: "2025-03-15" },
+            { id: 4, name: "Laura Fernandez", email: "laura.fernandez@email.com", phone: "+54 261 234-5678", city: "Mendoza", plan: "premium", registrationDate: "2025-04-05", status: "active", lastLogin: "2025-08-14", trialEndDate: null, paymentDate: "2025-04-10" }
+        ];
+
+        let filteredUsers = [...users];
+        let currentPage = 1;
+        const usersPerPage = 5;
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            renderTable();
+        });
+
+        function updateStats() {
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('activeUsers').textContent = users.filter(u => u.status === 'active').length;
+            document.getElementById('paidUsers').textContent = users.filter(u => u.plan === 'basic' || u.plan === 'premium').length;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>#${user.id.toString().padStart(3, '0')}</td>
+                    <td><strong>${user.name}</strong></td>
+                    <td>${user.email}</td>
+                    <td>${user.phone}</td>
+                    <td><span class="location-badge">${user.city}</span></td>
+                    <td><span class="plan plan-${user.plan}">${user.plan}</span></td>
+                    <td>${user.registrationDate}</td>
+                    <td><span class="status status-${user.status}">${user.status}</span></td>
+                    <td class="actions">
+                        <button class="action-btn action-view" title="Ver">👁️</button>
+                        <button class="action-btn action-edit" title="Editar">✏️</button>
+                        <button class="action-btn action-delete" title="Eliminar">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
     </script>
 </body>
 </html>
