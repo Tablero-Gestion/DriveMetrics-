@@ -191,34 +191,39 @@
                 console.warn('⚠️ No se pudo conectar con el backend local:', error.message);
                 console.log('📝 Usando datos de demostración...');
                 
-                // Fallback: usar datos de ejemplo si no hay conexión
-                users = [
-                    { id: 1, name: "Usuario Demo 1", email: "demo1@example.com", phone: "+54 11 1234-5678", city: "Buenos Aires", plan: "trial", registrationDate: "2025-01-15", status: "active", lastLogin: "2025-08-14", trialEndDate: "2025-08-21", paymentDate: null },
-                    { id: 2, name: "Usuario Demo 2", email: "demo2@example.com", phone: "+54 351 987-6543", city: "Córdoba", plan: "basic", registrationDate: "2025-02-20", status: "pending", lastLogin: "2025-08-13", trialEndDate: null, paymentDate: "2025-02-25" }
-                ];
-                filteredUsers = [...users];
+                // Sin usuarios - mostrar mensaje de configuración
+                users = [];
+                filteredUsers = [];
                 updateStats();
-                renderTable();
                 
-                // Mostrar mensaje de modo demo
-                showDemoMessage();
+                // Mostrar mensaje de configuración
+                showConfigMessage(data.message || error.message);
             }
         }
 
-        function showDemoMessage() {
+        function showConfigMessage(message) {
             const tbody = document.getElementById('usersTableBody');
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" style="text-align: center; padding: 40px; background: #fff3cd; color: #856404; border-radius: 8px;">
-                        <h3>🔌 Modo Demostración</h3>
-                        <p>No se pudo conectar con el backend local (http://localhost:3000)</p>
-                        <p><strong>Para ver usuarios reales:</strong></p>
-                        <ol style="text-align: left; display: inline-block; margin-top: 10px;">
-                            <li>Asegúrate de que el backend esté ejecutándose: <code>npm start</code></li>
-                            <li>Verifica que la base de datos MySQL esté activa</li>
-                            <li>Recarga esta página</li>
-                        </ol>
-                        <button onclick="loadRealUsers()" style="margin-top: 15px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">🔄 Reintentar Conexión</button>
+                    <td colspan="9" style="text-align: center; padding: 40px; background: #e3f2fd; color: #1565c0; border-radius: 8px;">
+                        <h3>🔗 Configuración de Vercel PostgreSQL</h3>
+                        <p><strong>Para ver usuarios REALES:</strong></p>
+                        <div style="text-align: left; display: inline-block; margin-top: 15px; background: #f5f5f5; padding: 15px; border-radius: 8px;">
+                            <h4>📋 Pasos para configurar:</h4>
+                            <ol>
+                                <li>Ve a <a href="https://vercel.com/dashboard" target="_blank">vercel.com/dashboard</a></li>
+                                <li>Selecciona tu proyecto <code>drive-metrics-psi</code></li>
+                                <li>Ve a <strong>Storage</strong> → <strong>PostgreSQL</strong></li>
+                                <li>Copia las variables de entorno <code>POSTGRES_URL</code></li>
+                                <li>Agrégalas a tu archivo <code>env.local</code></li>
+                                <li>Reinicia el servidor: <code>npm start</code></li>
+                            </ol>
+                        </div>
+                        <div style="margin-top: 15px; font-size: 12px; color: #666;">
+                            <strong>Estado actual:</strong> ${message || 'Sin conexión a Vercel PostgreSQL'}
+                        </div>
+                        <button onclick="loadRealUsers()" style="margin-top: 15px; padding: 8px 16px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">🔄 Reintentar Conexión</button>
+                        <button onclick="window.open('https://vercel.com/dashboard', '_blank')" style="margin-top: 15px; margin-left: 10px; padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">🌐 Ir a Vercel Dashboard</button>
                     </td>
                 </tr>
             `;

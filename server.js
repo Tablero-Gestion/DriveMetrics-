@@ -302,105 +302,134 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
-// Endpoint para obtener usuarios registrados (combina ambas tablas)
+// Endpoint para obtener usuarios registrados REALES de Vercel PostgreSQL
 app.get('/api/admin/usuarios', async (req, res) => {
     try {
-        console.log('🔍 Obteniendo usuarios de ambas tablas...');
+        console.log('🔍 Obteniendo usuarios REALES de Vercel PostgreSQL...');
         
-        // Consultar usuarios de Google Auth (tabla 'users')
-        const [googleUsers] = await pool.execute(`
-            SELECT 
-                id,
-                name,
-                email,
-                '' as phone,
-                created_at as registrationDate,
-                (CASE WHEN is_active = 1 THEN 'activa' ELSE 'inactive' END) as status,
-                DATE_ADD(created_at, INTERVAL 15 DAY) as trialEndDate,
-                last_login as lastLogin,
-                'google' as source
-            FROM users
-            WHERE email IS NOT NULL
-            ORDER BY created_at DESC
-        `);
-
-        // Consultar usuarios del sistema antiguo (tabla 'usuarios')
-        const [legacyUsers] = await pool.execute(`
-            SELECT 
-                u.id + 1000 as id,
-                u.nombre as name,
-                u.email,
-                u.telefono as phone,
-                u.fecha_registro as registrationDate,
-                u.estado_suscripcion as status,
-                u.fecha_expiracion_gratuita as trialEndDate,
-                u.ultima_actividad as lastLogin,
-                s.tipo_plan as plan,
-                s.fecha_inicio as paymentDate,
-                s.estado as subscriptionStatus,
-                'legacy' as source
-            FROM usuarios u
-            LEFT JOIN suscripciones s ON u.id = s.usuario_id AND s.estado = 'activa'
-            ORDER BY u.fecha_registro DESC
-        `);
-
-        console.log(`📊 Encontrados ${googleUsers.length} usuarios Google + ${legacyUsers.length} usuarios legacy`);
-
-        // Transformar usuarios de Google
-        const googleUsersTransformed = googleUsers.map(user => ({
-            id: user.id,
-            name: user.name || 'Usuario Google',
-            email: user.email,
-            phone: 'No registrado',
-            city: 'Google Auth',
-            plan: 'trial',
-            registrationDate: user.registrationDate ? user.registrationDate.toISOString().split('T')[0] : '',
-            status: user.status === 'activa' ? 'active' : 'inactive',
-            lastLogin: user.lastLogin ? user.lastLogin.toISOString().split('T')[0] : '',
-            trialEndDate: user.trialEndDate ? user.trialEndDate.toISOString().split('T')[0] : null,
-            paymentDate: null,
-            source: '🔗 Google Auth'
-        }));
-
-        // Transformar usuarios legacy
-        const legacyUsersTransformed = legacyUsers.map(user => ({
-            id: user.id,
-            name: user.name || 'Sin nombre',
-            email: user.email,
-            phone: user.phone || 'Sin teléfono',
-            city: 'Argentina',
-            plan: user.plan === 'mensual' ? 'premium' : (user.subscriptionStatus === 'activa' ? 'basic' : 'trial'),
-            registrationDate: user.registrationDate ? user.registrationDate.toISOString().split('T')[0] : '',
-            status: user.status === 'activa' ? 'active' : (user.status === 'trial' ? 'pending' : 'inactive'),
-            lastLogin: user.lastLogin ? user.lastLogin.toISOString().split('T')[0] : '',
-            trialEndDate: user.trialEndDate ? user.trialEndDate.toISOString().split('T')[0] : null,
-            paymentDate: user.paymentDate ? user.paymentDate.toISOString().split('T')[0] : null,
-            source: '📋 Sistema Legacy'
-        }));
-
-        // Combinar ambos arrays
-        const todosLosUsuarios = [...googleUsersTransformed, ...legacyUsersTransformed];
+        let vercelUsers = [];
+        let localUsers = [];
         
-        // Ordenar por fecha de registro (más recientes primero)
+        // 1. USUARIOS REALES de Vercel PostgreSQL
+        try {
+            const { sql } = require('@vercel/postgres');
+            
+            // Consultar usuarios reales de Vercel
+            const vercelResult = await sql`
+                SELECT 
+                    id,
+                    name,
+                    email,
+                    google_id,
+                    provider,
+                    is_active,
+                    email_verified,
+                    created_at,
+                    last_login,
+                    profile_data
+                FROM users 
+                WHERE email IS NOT NULL
+                ORDER BY created_at DESC
+            `;
+            
+            vercelUsers = vercelResult.rows || [];
+            console.log(`🌐 Encontrados ${vercelUsers.length} usuarios REALES en Vercel`);
+            
+        } catch (vercelError) {
+            console.warn('⚠️ No se pudo conectar a Vercel PostgreSQL:', vercelError.message);
+            console.log('💡 Asegúrate de configurar las variables POSTGRES_URL en env.local');
+        }
+        
+        // 2. USUARIOS LOCALES de MySQL (como respaldo)
+        try {
+            const [localResult] = await pool.execute(`
+                SELECT 
+                    id,
+                    name,
+                    email,
+                    created_at,
+                    last_login,
+                    is_active
+                FROM users
+                WHERE email IS NOT NULL
+                ORDER BY created_at DESC
+            `);
+            
+            localUsers = localResult || [];
+            console.log(`🏠 Encontrados ${localUsers.length} usuarios locales en MySQL`);
+            
+        } catch (localError) {
+            console.log('ℹ️ MySQL local sin usuarios:', localError.message);
+        }
+        
+        // TRANSFORMAR USUARIOS DE VERCEL (REALES)
+        const vercelUsersTransformed = vercelUsers.map(user => {
+            const createdDate = user.created_at ? new Date(user.created_at).toISOString().split('T')[0] : '';
+            const loginDate = user.last_login ? new Date(user.last_login).toISOString().split('T')[0] : '';
+            
+            return {
+                id: user.id,
+                name: user.name || 'Usuario Real',
+                email: user.email,
+                phone: 'Google Auth',
+                city: '🌐 Vercel Real',
+                plan: user.provider === 'google' ? 'trial' : 'basic',
+                registrationDate: createdDate,
+                status: user.is_active ? 'active' : 'inactive',
+                lastLogin: loginDate,
+                trialEndDate: null,
+                paymentDate: null,
+                source: '🎯 USUARIO REAL'
+            };
+        });
+        
+        // TRANSFORMAR USUARIOS LOCALES (RESPALDO)
+        const localUsersTransformed = localUsers.map(user => {
+            const createdDate = user.created_at ? new Date(user.created_at).toISOString().split('T')[0] : '';
+            const loginDate = user.last_login ? new Date(user.last_login).toISOString().split('T')[0] : '';
+            
+            return {
+                id: user.id + 10000, // Evitar conflictos de ID
+                name: user.name || 'Usuario Local',
+                email: user.email,
+                phone: 'Local Auth',
+                city: '🏠 Local MySQL',
+                plan: 'trial',
+                registrationDate: createdDate,
+                status: user.is_active ? 'active' : 'inactive',
+                lastLogin: loginDate,
+                trialEndDate: null,
+                paymentDate: null,
+                source: '📂 Local Backup'
+            };
+        });
+        
+        // COMBINAR TODOS LOS USUARIOS
+        const todosLosUsuarios = [...vercelUsersTransformed, ...localUsersTransformed];
+        
+        // Ordenar por fecha (más recientes primero)
         todosLosUsuarios.sort((a, b) => new Date(b.registrationDate) - new Date(a.registrationDate));
-
-        res.json({ 
-            success: true, 
+        
+        res.json({
+            success: true,
             usuarios: todosLosUsuarios,
             total: todosLosUsuarios.length,
             stats: {
-                googleUsers: googleUsers.length,
-                legacyUsers: legacyUsers.length,
+                vercelUsers: vercelUsers.length,
+                localUsers: localUsers.length,
                 total: todosLosUsuarios.length
-            }
+            },
+            message: vercelUsers.length > 0 ? 
+                `✅ Mostrando ${vercelUsers.length} usuarios REALES de Vercel` : 
+                '⚠️ No hay conexión a Vercel. Configura POSTGRES_URL en env.local'
         });
         
     } catch (error) {
         console.error('❌ Error obteniendo usuarios:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: 'Error interno del servidor',
-            message: error.message 
+            message: error.message
         });
     }
 });
