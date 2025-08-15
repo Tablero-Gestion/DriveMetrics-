@@ -26,7 +26,7 @@ const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5503', 'https://tu-dominio.com'],
+    origin: ['http://localhost:3000', 'http://localhost:5503', 'https://tu-dominio.com', 'https://drive-metrics-psi.vercel.app'],
     credentials: true
 }));
 app.use(express.json());
@@ -299,6 +299,63 @@ app.get('/api/stats', async (req, res) => {
     } catch (error) {
         console.error('❌ Error obteniendo estadísticas:', error);
         res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para obtener usuarios registrados reales
+app.get('/api/admin/usuarios', async (req, res) => {
+    try {
+        console.log('🔍 Obteniendo usuarios reales de la base de datos...');
+        
+        // Consultar usuarios de la tabla con JOIN para obtener datos de suscripciones
+        const [usuarios] = await pool.execute(`
+            SELECT 
+                u.id,
+                u.nombre as name,
+                u.email,
+                u.telefono as phone,
+                u.fecha_registro as registrationDate,
+                u.estado_suscripcion as status,
+                u.fecha_expiracion_gratuita as trialEndDate,
+                u.ultima_actividad as lastLogin,
+                s.tipo_plan as plan,
+                s.fecha_inicio as paymentDate,
+                s.estado as subscriptionStatus
+            FROM usuarios u
+            LEFT JOIN suscripciones s ON u.id = s.usuario_id AND s.estado = 'activa'
+            ORDER BY u.fecha_registro DESC
+        `);
+
+        console.log(`📊 Encontrados ${usuarios.length} usuarios`);
+
+        // Transformar datos para el frontend
+        const usuariosTransformados = usuarios.map(user => ({
+            id: user.id,
+            name: user.name || 'Sin nombre',
+            email: user.email,
+            phone: user.phone || 'Sin teléfono',
+            city: 'Argentina', // Valor por defecto, puedes agregar campo ciudad después
+            plan: user.plan === 'mensual' ? 'premium' : (user.subscriptionStatus === 'activa' ? 'basic' : 'trial'),
+            registrationDate: user.registrationDate ? user.registrationDate.toISOString().split('T')[0] : '',
+            status: user.status === 'activa' ? 'active' : (user.status === 'trial' ? 'pending' : 'inactive'),
+            lastLogin: user.lastLogin ? user.lastLogin.toISOString().split('T')[0] : '',
+            trialEndDate: user.trialEndDate ? user.trialEndDate.toISOString().split('T')[0] : null,
+            paymentDate: user.paymentDate ? user.paymentDate.toISOString().split('T')[0] : null
+        }));
+
+        res.json({ 
+            success: true, 
+            usuarios: usuariosTransformados,
+            total: usuarios.length
+        });
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo usuarios:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Error interno del servidor',
+            message: error.message 
+        });
     }
 });
 

@@ -151,23 +151,78 @@
         </div>
     </div>
     <script>
-        // Datos de usuarios de ejemplo
-        let users = [
-            { id: 1, name: "Carlos Mendez", email: "carlos.mendez@email.com", phone: "+54 11 1234-5678", city: "Buenos Aires", plan: "premium", registrationDate: "2025-01-15", status: "active", lastLogin: "2025-08-14", trialEndDate: null, paymentDate: "2025-01-20" },
-            { id: 2, name: "Ana Rodriguez", email: "ana.rodriguez@email.com", phone: "+54 351 987-6543", city: "Córdoba", plan: "trial", registrationDate: "2025-02-20", status: "active", lastLogin: "2025-08-13", trialEndDate: "2025-08-27", paymentDate: null },
-            { id: 3, name: "Miguel Santos", email: "miguel.santos@email.com", phone: "+54 341 456-7890", city: "Rosario", plan: "basic", registrationDate: "2025-03-10", status: "pending", lastLogin: "2025-08-10", trialEndDate: null, paymentDate: "2025-03-15" },
-            { id: 4, name: "Laura Fernandez", email: "laura.fernandez@email.com", phone: "+54 261 234-5678", city: "Mendoza", plan: "premium", registrationDate: "2025-04-05", status: "active", lastLogin: "2025-08-14", trialEndDate: null, paymentDate: "2025-04-10" }
-        ];
-
-        let filteredUsers = [...users];
+        // Variables globales
+        let users = [];
+        let filteredUsers = [];
         let currentPage = 1;
         const usersPerPage = 5;
 
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', function() {
-            updateStats();
-            renderTable();
+        // Inicialización - cargar usuarios reales
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Cargando panel de usuarios...');
+            await loadRealUsers();
         });
+
+        // Función para cargar usuarios reales desde el backend
+        async function loadRealUsers() {
+            try {
+                console.log('📡 Conectando con el backend local...');
+                
+                // Intentar conectar con el backend local primero
+                const response = await fetch('http://localhost:3000/api/admin/usuarios');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.usuarios) {
+                    users = data.usuarios;
+                    filteredUsers = [...users];
+                    console.log(`✅ Cargados ${users.length} usuarios reales`);
+                    updateStats();
+                    renderTable();
+                } else {
+                    throw new Error('Formato de respuesta inválido');
+                }
+                
+            } catch (error) {
+                console.warn('⚠️ No se pudo conectar con el backend local:', error.message);
+                console.log('📝 Usando datos de demostración...');
+                
+                // Fallback: usar datos de ejemplo si no hay conexión
+                users = [
+                    { id: 1, name: "Usuario Demo 1", email: "demo1@example.com", phone: "+54 11 1234-5678", city: "Buenos Aires", plan: "trial", registrationDate: "2025-01-15", status: "active", lastLogin: "2025-08-14", trialEndDate: "2025-08-21", paymentDate: null },
+                    { id: 2, name: "Usuario Demo 2", email: "demo2@example.com", phone: "+54 351 987-6543", city: "Córdoba", plan: "basic", registrationDate: "2025-02-20", status: "pending", lastLogin: "2025-08-13", trialEndDate: null, paymentDate: "2025-02-25" }
+                ];
+                filteredUsers = [...users];
+                updateStats();
+                renderTable();
+                
+                // Mostrar mensaje de modo demo
+                showDemoMessage();
+            }
+        }
+
+        function showDemoMessage() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 40px; background: #fff3cd; color: #856404; border-radius: 8px;">
+                        <h3>🔌 Modo Demostración</h3>
+                        <p>No se pudo conectar con el backend local (http://localhost:3000)</p>
+                        <p><strong>Para ver usuarios reales:</strong></p>
+                        <ol style="text-align: left; display: inline-block; margin-top: 10px;">
+                            <li>Asegúrate de que el backend esté ejecutándose: <code>npm start</code></li>
+                            <li>Verifica que la base de datos MySQL esté activa</li>
+                            <li>Recarga esta página</li>
+                        </ol>
+                        <button onclick="loadRealUsers()" style="margin-top: 15px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">🔄 Reintentar Conexión</button>
+                    </td>
+                </tr>
+            `;
+        }
 
         function updateStats() {
             document.getElementById('totalUsers').textContent = users.length;
