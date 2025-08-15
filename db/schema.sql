@@ -1,6 +1,6 @@
 -- Crear base de datos
-CREATE DATABASE calculadora_drivers;
-USE calculadora_drivers;
+CREATE DATABASE IF NOT EXISTS drivemetrics;
+USE drivemetrics;
 
 -- Tabla de usuarios
 CREATE TABLE usuarios (

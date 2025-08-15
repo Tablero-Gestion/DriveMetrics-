@@ -238,7 +238,10 @@
                     <td><strong>${user.name}</strong></td>
                     <td>${user.email}</td>
                     <td>${user.phone}</td>
-                    <td><span class="location-badge">${user.city}</span></td>
+                    <td>
+                        <span class="location-badge">${user.city}</span>
+                        ${user.source ? `<br><small style="color: #6b7280; font-size: 10px;">${user.source}</small>` : ''}
+                    </td>
                     <td><span class="plan plan-${user.plan}">${user.plan}</span></td>
                     <td>${user.registrationDate}</td>
                     <td><span class="status status-${user.status}">${user.status}</span></td>

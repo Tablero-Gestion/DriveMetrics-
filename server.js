@@ -302,15 +302,32 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
-// Endpoint para obtener usuarios registrados reales
+// Endpoint para obtener usuarios registrados (combina ambas tablas)
 app.get('/api/admin/usuarios', async (req, res) => {
     try {
-        console.log('🔍 Obteniendo usuarios reales de la base de datos...');
+        console.log('🔍 Obteniendo usuarios de ambas tablas...');
         
-        // Consultar usuarios de la tabla con JOIN para obtener datos de suscripciones
-        const [usuarios] = await pool.execute(`
+        // Consultar usuarios de Google Auth (tabla 'users')
+        const [googleUsers] = await pool.execute(`
             SELECT 
-                u.id,
+                id,
+                name,
+                email,
+                '' as phone,
+                created_at as registrationDate,
+                (CASE WHEN is_active = 1 THEN 'activa' ELSE 'inactive' END) as status,
+                DATE_ADD(created_at, INTERVAL 15 DAY) as trialEndDate,
+                last_login as lastLogin,
+                'google' as source
+            FROM users
+            WHERE email IS NOT NULL
+            ORDER BY created_at DESC
+        `);
+
+        // Consultar usuarios del sistema antiguo (tabla 'usuarios')
+        const [legacyUsers] = await pool.execute(`
+            SELECT 
+                u.id + 1000 as id,
                 u.nombre as name,
                 u.email,
                 u.telefono as phone,
@@ -320,33 +337,62 @@ app.get('/api/admin/usuarios', async (req, res) => {
                 u.ultima_actividad as lastLogin,
                 s.tipo_plan as plan,
                 s.fecha_inicio as paymentDate,
-                s.estado as subscriptionStatus
+                s.estado as subscriptionStatus,
+                'legacy' as source
             FROM usuarios u
             LEFT JOIN suscripciones s ON u.id = s.usuario_id AND s.estado = 'activa'
             ORDER BY u.fecha_registro DESC
         `);
 
-        console.log(`📊 Encontrados ${usuarios.length} usuarios`);
+        console.log(`📊 Encontrados ${googleUsers.length} usuarios Google + ${legacyUsers.length} usuarios legacy`);
 
-        // Transformar datos para el frontend
-        const usuariosTransformados = usuarios.map(user => ({
+        // Transformar usuarios de Google
+        const googleUsersTransformed = googleUsers.map(user => ({
+            id: user.id,
+            name: user.name || 'Usuario Google',
+            email: user.email,
+            phone: 'No registrado',
+            city: 'Google Auth',
+            plan: 'trial',
+            registrationDate: user.registrationDate ? user.registrationDate.toISOString().split('T')[0] : '',
+            status: user.status === 'activa' ? 'active' : 'inactive',
+            lastLogin: user.lastLogin ? user.lastLogin.toISOString().split('T')[0] : '',
+            trialEndDate: user.trialEndDate ? user.trialEndDate.toISOString().split('T')[0] : null,
+            paymentDate: null,
+            source: '🔗 Google Auth'
+        }));
+
+        // Transformar usuarios legacy
+        const legacyUsersTransformed = legacyUsers.map(user => ({
             id: user.id,
             name: user.name || 'Sin nombre',
             email: user.email,
             phone: user.phone || 'Sin teléfono',
-            city: 'Argentina', // Valor por defecto, puedes agregar campo ciudad después
+            city: 'Argentina',
             plan: user.plan === 'mensual' ? 'premium' : (user.subscriptionStatus === 'activa' ? 'basic' : 'trial'),
             registrationDate: user.registrationDate ? user.registrationDate.toISOString().split('T')[0] : '',
             status: user.status === 'activa' ? 'active' : (user.status === 'trial' ? 'pending' : 'inactive'),
             lastLogin: user.lastLogin ? user.lastLogin.toISOString().split('T')[0] : '',
             trialEndDate: user.trialEndDate ? user.trialEndDate.toISOString().split('T')[0] : null,
-            paymentDate: user.paymentDate ? user.paymentDate.toISOString().split('T')[0] : null
+            paymentDate: user.paymentDate ? user.paymentDate.toISOString().split('T')[0] : null,
+            source: '📋 Sistema Legacy'
         }));
+
+        // Combinar ambos arrays
+        const todosLosUsuarios = [...googleUsersTransformed, ...legacyUsersTransformed];
+        
+        // Ordenar por fecha de registro (más recientes primero)
+        todosLosUsuarios.sort((a, b) => new Date(b.registrationDate) - new Date(a.registrationDate));
 
         res.json({ 
             success: true, 
-            usuarios: usuariosTransformados,
-            total: usuarios.length
+            usuarios: todosLosUsuarios,
+            total: todosLosUsuarios.length,
+            stats: {
+                googleUsers: googleUsers.length,
+                legacyUsers: legacyUsers.length,
+                total: todosLosUsuarios.length
+            }
         });
         
     } catch (error) {
