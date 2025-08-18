@@ -169,7 +169,7 @@
                 console.log('📡 Conectando con el backend local...');
                 
                 // Intentar conectar con el backend local primero
-                const response = await fetch('http://localhost:3000/api/admin/usuarios');
+                const response = await fetch('https://drive-metrics-psi.vercel.app/api/usuarios');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
