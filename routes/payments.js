@@ -14,7 +14,7 @@ router.post('/create-preference', authMiddleware, async (req, res) => {
     const { userId } = req.user;
     const precio = parseFloat(process.env.MONTHLY_PRICE) || 1500;
 
-    const usuario = await db.queryOne('SELECT id, email, nombre FROM usuarios WHERE id = ?', [userId]);
+    const usuario = await db.queryOne('SELECT id, email, name FROM users WHERE id = ?', [userId]);
     if (!usuario) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
 
     const preferenceData = {
@@ -28,7 +28,7 @@ router.post('/create-preference', authMiddleware, async (req, res) => {
           unit_price: precio
         }
       ],
-      payer: { email: usuario.email, name: usuario.nombre },
+      payer: { email: usuario.email, name: usuario.name },
       payment_methods: { excluded_payment_methods: [], excluded_payment_types: [], installments: 1 },
       back_urls: {
         success: `${process.env.DOMAIN_URL}/payment/success`,
@@ -46,8 +46,8 @@ router.post('/create-preference', authMiddleware, async (req, res) => {
     const fechaInicio = moment().format('YYYY-MM-DD');
     const fechaVencimiento = moment().add(1, 'month').format('YYYY-MM-DD');
     await db.query(
-      `INSERT INTO suscripciones (usuario_id, precio, fecha_inicio, fecha_vencimiento, mercadopago_preference_id, estado)
-       VALUES (?, ?, ?, ?, ?, 'pendiente')`,
+      `INSERT INTO subscriptions (user_id, amount, start_date, end_date, mp_preference_id, status)
+       VALUES (?, ?, ?, ?, ?, 'pending')`,
       [userId, precio, fechaInicio, fechaVencimiento, mpPreference.id]
     );
     await db.query(
@@ -74,7 +74,7 @@ router.post('/webhook', async (req, res) => {
       if (!userId) return res.status(200).send('OK');
 
       const suscripcion = await db.queryOne(
-        `SELECT id FROM suscripciones WHERE usuario_id = ? AND estado = 'pendiente' ORDER BY created_at DESC LIMIT 1`,
+        `SELECT id FROM subscriptions WHERE user_id = ? AND status = 'pending' ORDER BY created_at DESC LIMIT 1`,
         [userId]
       );
       if (!suscripcion) return res.status(200).send('OK');
@@ -82,10 +82,10 @@ router.post('/webhook', async (req, res) => {
       if (status === 'approved') {
         await db.transaction(async (conn) => {
           await conn.execute(
-            `UPDATE suscripciones SET estado = 'activa', mercadopago_payment_id = ?, mercadopago_status = ? WHERE id = ?`,
+            `UPDATE subscriptions SET status = 'active', mp_payment_id = ?, mp_status = ? WHERE id = ?`,
             [paymentId, status, suscripcion.id]
           );
-          await conn.execute('UPDATE usuarios SET estado_suscripcion = ? WHERE id = ?', ['activa', userId]);
+          await conn.execute('UPDATE users SET is_active = ? WHERE id = ?', [true, userId]);
           await conn.execute(
             'INSERT INTO logs_actividad (usuario_id, accion, detalles) VALUES (?, ?, ?)',
             [userId, 'pago_aprobado', JSON.stringify({ payment_id: paymentId, amount: paymentInfo.transaction_amount })]
@@ -93,7 +93,7 @@ router.post('/webhook', async (req, res) => {
         });
       } else if (status === 'rejected' || status === 'cancelled') {
         await db.query(
-          `UPDATE suscripciones SET mercadopago_payment_id = ?, mercadopago_status = ?, estado = 'cancelada' WHERE id = ?`,
+          `UPDATE subscriptions SET mp_payment_id = ?, mp_status = ?, status = 'cancelled' WHERE id = ?`,
           [paymentId, status, suscripcion.id]
         );
       }

@@ -30,19 +30,18 @@ export default async function handler(req, res) {
     const query = `
       SELECT 
         u.id,
-        u.nombre as name,
+        u.name,
         u.email,
-        u.telefono as phone,
-        u.fecha_registro as registrationDate,
-        u.estado_suscripcion as status,
-        u.fecha_expiracion_gratuita as trialEndDate,
-        u.ultima_actividad as lastLogin,
-        s.tipo_plan as plan,
-        s.fecha_inicio as paymentDate,
-        s.estado as subscriptionStatus
-      FROM usuarios u
-      LEFT JOIN suscripciones s ON u.id = s.usuario_id AND s.estado = 'activa'
-      ORDER BY u.fecha_registro DESC
+        u.profile_data->>'phone' as phone,
+        u.created_at as registrationDate,
+        u.is_active as status,
+        u.last_login as lastLogin,
+        s.plan_type as plan,
+        s.start_date as paymentDate,
+        s.status as subscriptionStatus
+      FROM users u
+      LEFT JOIN subscriptions s ON u.id = s.user_id AND s.status = 'active'
+              ORDER BY u.created_at DESC
     `;
 
     const result = await pool.query(query);

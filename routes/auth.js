@@ -33,7 +33,7 @@ router.post('/registro', [validateEmail, validateName, validatePhone], async (re
 
     const { email, nombre, telefono } = req.body;
 
-    const existingUser = await db.queryOne('SELECT id FROM usuarios WHERE email = ?', [email]);
+    const existingUser = await db.queryOne('SELECT id FROM users WHERE email = ?', [email]);
     if (existingUser) {
       return res.status(409).json({ success: false, message: 'El email ya está registrado' });
     }
@@ -42,8 +42,8 @@ router.post('/registro', [validateEmail, validateName, validatePhone], async (re
     const fechaExpiracion = moment().add(trialDays, 'days').format('YYYY-MM-DD HH:mm:ss');
 
     const result = await db.query(
-      `INSERT INTO usuarios (email, nombre, telefono, fecha_expiracion_gratuita, estado_suscripcion)
-       VALUES (?, ?, ?, ?, 'trial')`,
+      `INSERT INTO users (email, name, profile_data, created_at, is_active)
+       VALUES (?, ?, ?, NOW(), true)`,
       [email, nombre, telefono || null, fechaExpiracion]
     );
 
@@ -87,8 +87,8 @@ router.post('/login', [validateEmail], async (req, res) => {
     }
     const { email } = req.body;
     const user = await db.queryOne(
-      `SELECT id, email, nombre, estado_suscripcion, fecha_expiracion_gratuita, intentos_login, bloqueado_hasta
-       FROM usuarios WHERE email = ?`,
+      `SELECT id, email, name, profile_data, created_at, is_active
+       FROM users WHERE email = ?`,
       [email]
     );
     if (!user) {
@@ -107,7 +107,7 @@ router.post('/login', [validateEmail], async (req, res) => {
         await db.query('UPDATE usuarios SET estado_suscripcion = ? WHERE id = ?', ['vencida', user.id]);
       }
     }
-    await db.query('UPDATE usuarios SET intentos_login = 0, bloqueado_hasta = NULL, ultima_actividad = NOW() WHERE id = ?', [user.id]);
+    await db.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
     const token = jwt.sign({ userId: user.id, email: user.email, estado: estadoActual }, process.env.JWT_SECRET, { expiresIn: '30d' });
     await db.query('INSERT INTO logs_actividad (usuario_id, accion, ip_address, user_agent) VALUES (?, ?, ?, ?)', [user.id, 'login', req.ip, req.get('User-Agent')]);
     res.json({ success: true, message: 'Login exitoso', token, user: { id: user.id, email: user.email, nombre: user.nombre, estado: estadoActual, diasRestantes: Math.max(0, diasRestantes), fechaExpiracion: user.fecha_expiracion_gratuita } });
@@ -123,7 +123,7 @@ router.get('/verify', async (req, res) => {
     if (!token) return res.status(401).json({ success: false, message: 'Token requerido' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await db.queryOne(
-      `SELECT id, email, nombre, estado_suscripcion, fecha_expiracion_gratuita FROM usuarios WHERE id = ?`,
+      `SELECT id, email, name, created_at, is_active FROM users WHERE id = ?`,
       [decoded.userId]
     );
     if (!user) return res.status(401).json({ success: false, message: 'Usuario no válido' });
