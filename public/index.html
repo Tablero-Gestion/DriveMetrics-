@@ -150,6 +150,17 @@
         .ch-card{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:16px; }
         .ch-badge{ padding:6px 10px; border-radius:999px; font-weight:700; font-size:.8rem; }
         .ch-progress{ height:16px; background:#334155; border-radius:999px; overflow:hidden; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .assistant-float:hover .assistant-float > div:last-child {
+            opacity: 1;
+        }
+        .assistant-float:hover a {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -193,6 +204,21 @@
             <div class="welcome-section">
                 <h1>¡Bienvenido a DriveMetrics!</h1>
                 <p>Tu dashboard personalizado está listo. Sesión iniciada correctamente.</p>
+                
+                <!-- BOTÓN PROMINENTE DEL ASISTENTE VIRTUAL -->
+                <div class="assistant-prominent" style="margin-top: 30px; text-align: center;">
+                    <a href="https://drive-metrics-psi.vercel.app/assistant.html" target="_blank" 
+                       style="display: inline-flex; align-items: center; gap: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                              color: white; padding: 20px 30px; border-radius: 50px; text-decoration: none; font-size: 1.2rem; 
+                              font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s ease;">
+                        <span style="font-size: 2rem;">🤖</span>
+                        <span>¡HABLÁ CON EL ASISTENTE VIRTUAL!</span>
+                        <span style="font-size: 1.5rem;">→</span>
+                    </a>
+                    <p style="margin-top: 15px; color: #666; font-size: 0.95rem;">
+                        Tu asistente personal de IA está listo para ayudarte con DriveMetrics
+                    </p>
+                </div>
             </div>
 
             <!-- Calculadora principal (estructura base) -->
@@ -537,6 +563,46 @@
     </div>
         </div>
     </div>
+
+    <!-- BOTÓN FLOTANTE DEL ASISTENTE VIRTUAL -->
+    <div class="assistant-float" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+        <a href="https://drive-metrics-psi.vercel.app/assistant.html" target="_blank" 
+           style="display: flex; align-items: center; justify-content: center; width: 70px; height: 70px; 
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; 
+                  border-radius: 50%; text-decoration: none; font-size: 2rem; box-shadow: 0 8px 25px rgba(0,0,0,0.3); 
+                  transition: all 0.3s ease; animation: pulse 2s infinite;">
+            🤖
+        </a>
+        <div style="position: absolute; right: 80px; top: 50%; transform: translateY(-50%); background: white; 
+                    color: #333; padding: 10px 15px; border-radius: 25px; font-size: 0.9rem; font-weight: 600; 
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2); white-space: nowrap; opacity: 0; 
+                    transition: opacity 0.3s ease; pointer-events: none;">
+            ¡Hablá con el Asistente!
+        </div>
+    </div>
+
+    <style>
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .assistant-float:hover .assistant-float > div:last-child {
+            opacity: 1;
+        }
+        .assistant-float:hover a {
+            transform: scale(1.1);
+        }
+    </style>
+
+    <script>
+        // Mostrar tooltip del asistente flotante
+        document.querySelector('.assistant-float').addEventListener('mouseenter', function() {
+            this.querySelector('div').style.opacity = '1';
+        });
+        document.querySelector('.assistant-float').addEventListener('mouseleave', function() {
+            this.querySelector('div').style.opacity = '0';
+        });
+    </script>
 
     <script src="/quickImplementation.js"></script>
     <script src="/payment-system.js"></script>
