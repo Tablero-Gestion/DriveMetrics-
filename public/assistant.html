@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Asistente Virtual - DriveMetrics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .assistant-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .assistant-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .assistant-avatar {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .assistant-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .assistant-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .chat-container {
+            height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #667eea;
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: #764ba2;
+            color: white;
+        }
+
+        .message-content {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 20px;
+            max-width: 70%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #333;
+        }
+
+        .message-time {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .quick-action {
+            background: white;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .quick-action:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .quick-action-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="assistant-container">
+        <div class="assistant-header">
+            <a href="index.html" class="back-button">← Volver</a>
+            <div class="assistant-avatar">🤖</div>
+            <h1 class="assistant-title">Asistente Virtual DriveMetrics</h1>
+            <p class="assistant-subtitle">Tu guía inteligente para maximizar tus ganancias</p>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <!-- Mensajes del chat se insertarán aquí -->
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="message-avatar" style="background: #764ba2; color: white;">🤖</div>
+            <div class="message-content">
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu pregunta o consulta..." maxlength="500">
+            <button class="send-button" id="sendButton">Enviar</button>
+        </div>
+
+        <div class="quick-actions">
+            <div class="quick-action" onclick="sendQuickMessage('¿Cómo usar la calculadora de taxi?')">
+                <span class="quick-action-icon">🚗</span>
+                Calculadora
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('¿Cómo funciona el sistema de pagos?')">
+                <span class="quick-action-icon">💳</span>
+                Pagos
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('¿Cuáles son las mejores estrategias para ganar más?')">
+                <span class="quick-action-icon">📈</span>
+                Estrategias
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('¿Cómo configurar mi perfil?')">
+                <span class="quick-action-icon">⚙️</span>
+                Configuración
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DriveMetricsAssistant {
+            constructor() {
+                this.chatContainer = document.getElementById('chatContainer');
+                this.chatInput = document.getElementById('chatInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.typingIndicator = document.getElementById('typingIndicator');
+                
+                this.setupEventListeners();
+                this.initializeChat();
+            }
+
+            setupEventListeners() {
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+            }
+
+            initializeChat() {
+                // Mensaje de bienvenida
+                this.addMessage('assistant', 
+                    '¡Hola! Soy tu asistente virtual de DriveMetrics. 🤖\n\n' +
+                    'Puedo ayudarte con:\n' +
+                    '• Uso de la calculadora de taxi\n' +
+                    '• Sistema de pagos y suscripciones\n' +
+                    '• Estrategias para maximizar ganancias\n' +
+                    '• Configuración de tu perfil\n' +
+                    '• Cualquier duda sobre la plataforma\n\n' +
+                    '¿En qué puedo ayudarte hoy?'
+                );
+            }
+
+            addMessage(sender, content) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = sender === 'user' ? '👤' : '🤖';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.innerHTML = content.replace(/\n/g, '<br>');
+                
+                const time = document.createElement('div');
+                time.className = 'message-time';
+                time.textContent = new Date().toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                messageContent.appendChild(time);
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                
+                this.chatContainer.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            async sendMessage() {
+                const message = this.chatInput.value.trim();
+                if (!message) return;
+                
+                // Agregar mensaje del usuario
+                this.addMessage('user', message);
+                this.chatInput.value = '';
+                
+                // Mostrar indicador de escritura
+                this.showTypingIndicator();
+                
+                // Simular respuesta del asistente
+                setTimeout(() => {
+                    this.hideTypingIndicator();
+                    this.generateResponse(message);
+                }, 1000 + Math.random() * 2000);
+            }
+
+            showTypingIndicator() {
+                this.typingIndicator.style.display = 'flex';
+                this.scrollToBottom();
+            }
+
+            hideTypingIndicator() {
+                this.typingIndicator.style.display = 'none';
+            }
+
+            generateResponse(userMessage) {
+                const message = userMessage.toLowerCase();
+                let response = '';
+                
+                if (message.includes('calculadora') || message.includes('taxi')) {
+                    response = `🚗 <strong>Calculadora de Taxi:</strong>\n\n` +
+                        `La calculadora te permite:\n` +
+                        `• Calcular tarifas por distancia\n` +
+                        `• Ver costos por zona\n` +
+                        `• Guardar historial de cálculos\n\n` +
+                        `<a href="calc-taxi.html" style="color: #667eea; text-decoration: none;">→ Ir a la calculadora</a>`;
+                }
+                else if (message.includes('pago') || message.includes('suscripción')) {
+                    response = `💳 <strong>Sistema de Pagos:</strong>\n\n` +
+                        `DriveMetrics Pro incluye:\n` +
+                        `• Acceso premium a todas las herramientas\n` +
+                        `• Predicciones avanzadas con IA\n` +
+                        `• Dashboard completo de métricas\n` +
+                        `• Soporte prioritario\n\n` +
+                        `<a href="payments.html" style="color: #667eea; text-decoration: none;">→ Ver planes y precios</a>`;
+                }
+                else if (message.includes('estrategia') || message.includes('ganar') || message.includes('más')) {
+                    response = `📈 <strong>Estrategias para Maximizar Ganancias:</strong>\n\n` +
+                        `1. <strong>Horarios Pico:</strong> Trabaja en horas de alta demanda\n` +
+                        `2. <strong>Zonas Calientes:</strong> Identifica áreas con mayor tráfico\n` +
+                        `3. <strong>Eficiencia:</strong> Usa la calculadora para optimizar rutas\n` +
+                        `4. <strong>Análisis:</strong> Revisa tus métricas en el dashboard\n` +
+                        `5. <strong>Networking:</strong> Conecta con otros conductores\n\n` +
+                        `<a href="dashboard.html" style="color: #667eea; text-decoration: none;">→ Ver tu dashboard</a>`;
+                }
+                else if (message.includes('perfil') || message.includes('configurar')) {
+                    response = `⚙️ <strong>Configuración de Perfil:</strong>\n\n` +
+                        `Para configurar tu perfil:\n` +
+                        `• Completa tu información personal\n` +
+                        `• Agrega tu vehículo y documentos\n` +
+                        `• Configura preferencias de notificaciones\n` +
+                        `• Establece tu zona de trabajo preferida\n\n` +
+                        `<a href="dashboard.html" style="color: #667eea; text-decoration: none;">→ Ir al dashboard</a>`;
+                }
+                else if (message.includes('hola') || message.includes('ayuda')) {
+                    response = `¡Hola! 👋 Estoy aquí para ayudarte con DriveMetrics.\n\n` +
+                        `Puedo asistirte con:\n` +
+                        `• 🚗 Uso de herramientas\n` +
+                        `• 💳 Pagos y suscripciones\n` +
+                        `• 📈 Estrategias de negocio\n` +
+                        `• ⚙️ Configuración\n\n` +
+                        `¿Qué te gustaría saber?`;
+                }
+                else {
+                    response = `🤔 Entiendo tu consulta sobre "${userMessage}".\n\n` +
+                        `Permíteme conectarte con nuestro equipo de soporte para una respuesta más específica.\n\n` +
+                        `Mientras tanto, puedes:\n` +
+                        `• Revisar el <a href="dashboard.html" style="color: #667eea;">dashboard</a>\n` +
+                        `• Usar la <a href="calc-taxi.html" style="color: #667eea;">calculadora</a>\n` +
+                        `• Explorar las <a href="challenge.html" style="color: #667eea;">funcionalidades</a>`;
+                }
+                
+                this.addMessage('assistant', response);
+            }
+
+            scrollToBottom() {
+                this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+            }
+        }
+
+        // Inicializar asistente cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            new DriveMetricsAssistant();
+        });
+
+        // Función para mensajes rápidos
+        function sendQuickMessage(message) {
+            const chatInput = document.getElementById('chatInput');
+            chatInput.value = message;
+            document.getElementById('sendButton').click();
+        }
+    </script>
+</body>
+</html>
