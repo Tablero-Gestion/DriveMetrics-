@@ -161,6 +161,195 @@
         .assistant-float:hover a {
             transform: scale(1.1);
         }
+
+        /* Estilos del Modal del Asistente */
+        .assistant-modal {
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .assistant-modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .assistant-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .assistant-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .assistant-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .chat-container {
+            margin-bottom: 20px;
+        }
+
+        .chat-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bot-message {
+            align-items: flex-start;
+        }
+
+        .user-message {
+            align-items: flex-end;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .bot-message .message-content {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .user-message .message-content {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quick-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .quick-btn:hover {
+            background-color: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .assistant-modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+            
+            .assistant-header h3 {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -207,14 +396,14 @@
                 
                 <!-- BOTÓN PROMINENTE DEL ASISTENTE VIRTUAL -->
                 <div class="assistant-prominent" style="margin-top: 30px; text-align: center;">
-                    <a href="https://drive-metrics-psi.vercel.app/assistant.html" target="_blank" 
+                    <button onclick="openAssistantModal()" 
                        style="display: inline-flex; align-items: center; gap: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                               color: white; padding: 20px 30px; border-radius: 50px; text-decoration: none; font-size: 1.2rem; 
-                              font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s ease;">
+                              font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s ease; border: none; cursor: pointer;">
                         <span style="font-size: 2rem;">🤖</span>
                         <span>¡HABLÁ CON EL ASISTENTE VIRTUAL!</span>
                         <span style="font-size: 1.5rem;">→</span>
-                    </a>
+                    </button>
                     <p style="margin-top: 15px; color: #666; font-size: 0.95rem;">
                         Tu asistente personal de IA está listo para ayudarte con DriveMetrics
                     </p>
@@ -232,7 +421,7 @@
                 <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/alerts.html">🔔 Alertas Premium</a>
                 <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/live-counter.html">🚦 Contador EN VIVO</a>
                 <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/challenge.html">🏆 Modo Challenge</a>
-                <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/assistant.html">🤖 Asistente Virtual</a>
+                <button class="feature-btn" onclick="openAssistantModal()">🤖 Asistente Virtual</button>
                 <a class="feature-btn" href="#" data-open-url="https://drive-metrics-psi.vercel.app/notifications.html">🔔 Notificaciones</a>
             </div>
         </div>
@@ -566,18 +755,48 @@
 
     <!-- BOTÓN FLOTANTE DEL ASISTENTE VIRTUAL -->
     <div class="assistant-float" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
-        <a href="https://drive-metrics-psi.vercel.app/assistant.html" target="_blank" 
-           style="display: flex; align-items: center; justify-content: center; width: 70px; height: 70px; 
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; 
-                  border-radius: 50%; text-decoration: none; font-size: 2rem; box-shadow: 0 8px 25px rgba(0,0,0,0.3); 
-                  transition: all 0.3s ease; animation: pulse 2s infinite;">
+        <button onclick="openAssistantModal()" 
+               style="display: flex; align-items: center; justify-content: center; width: 70px; height: 70px; 
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; 
+                      border-radius: 50%; text-decoration: none; font-size: 2rem; box-shadow: 0 8px 25px rgba(0,0,0,0.3); 
+                      transition: all 0.3s ease; animation: pulse 2s infinite; border: none; cursor: pointer;">
             🤖
-        </a>
+        </button>
         <div style="position: absolute; right: 80px; top: 50%; transform: translateY(-50%); background: white; 
                     color: #333; padding: 10px 15px; border-radius: 25px; font-size: 0.9rem; font-weight: 600; 
                     box-shadow: 0 5px 15px rgba(0,0,0,0.2); white-space: nowrap; opacity: 0; 
                     transition: opacity 0.3s ease; pointer-events: none;">
             ¡Hablá con el Asistente!
+        </div>
+    </div>
+
+    <!-- MODAL DEL ASISTENTE VIRTUAL -->
+    <div id="assistantModal" class="assistant-modal" style="display: none;">
+        <div class="assistant-modal-content">
+            <div class="assistant-header">
+                <h3>🤖 Asistente Virtual DriveMetrics</h3>
+                <button onclick="closeAssistantModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="assistant-body">
+                <div class="chat-container">
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="message bot-message">
+                            <div class="message-content">
+                                ¡Hola! Soy tu asistente virtual de DriveMetrics. ¿En qué puedo ayudarte hoy?
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="userInput" placeholder="Escribe tu pregunta..." class="chat-input">
+                        <button onclick="sendMessage()" class="send-btn">Enviar</button>
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <button onclick="quickQuestion('¿Cómo funciona el predictor?')" class="quick-btn">¿Cómo funciona el predictor?</button>
+                    <button onclick="quickQuestion('¿Qué es el mapa de calor?')" class="quick-btn">¿Qué es el mapa de calor?</button>
+                    <button onclick="quickQuestion('¿Cómo configuro alertas?')" class="quick-btn">¿Cómo configuro alertas?</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -589,8 +808,197 @@
         .assistant-float:hover .assistant-float > div:last-child {
             opacity: 1;
         }
-        .assistant-float:hover a {
+        .assistant-float:hover button {
             transform: scale(1.1);
+        }
+
+        /* Estilos del Modal del Asistente */
+        .assistant-modal {
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .assistant-modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .assistant-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .assistant-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .assistant-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .chat-container {
+            margin-bottom: 20px;
+        }
+
+        .chat-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bot-message {
+            align-items: flex-start;
+        }
+
+        .user-message {
+            align-items: flex-end;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .bot-message .message-content {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .user-message .message-content {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quick-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .quick-btn:hover {
+            background-color: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .assistant-modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+            
+            .assistant-header h3 {
+                font-size: 1rem;
+            }
         }
     </style>
 
@@ -601,6 +1009,87 @@
         });
         document.querySelector('.assistant-float').addEventListener('mouseleave', function() {
             this.querySelector('div').style.opacity = '0';
+        });
+
+        // Funciones del Modal del Asistente
+        function openAssistantModal() {
+            document.getElementById('assistantModal').style.display = 'block';
+            document.getElementById('userInput').focus();
+        }
+
+        function closeAssistantModal() {
+            document.getElementById('assistantModal').style.display = 'none';
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, 'user');
+                input.value = '';
+                
+                // Simular respuesta del bot
+                setTimeout(() => {
+                    const response = generateBotResponse(message);
+                    addMessage(response, 'bot');
+                }, 1000);
+            }
+        }
+
+        function quickQuestion(question) {
+            addMessage(question, 'user');
+            
+            setTimeout(() => {
+                const response = generateBotResponse(question);
+                addMessage(response, 'bot');
+            }, 1000);
+        }
+
+        function addMessage(text, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${text}
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function generateBotResponse(userMessage) {
+            const responses = {
+                'predictor': 'El predictor de DriveMetrics analiza patrones de conducción y datos históricos para predecir ganancias futuras. Utiliza IA para identificar las mejores zonas y horarios.',
+                'mapa de calor': 'El mapa de calor muestra las áreas más rentables de la ciudad. Las zonas más calientes (rojas) indican mayor demanda y mejores ganancias.',
+                'alertas': 'Las alertas te notifican sobre eventos importantes: picos de demanda, zonas calientes, y oportunidades de ganancia en tiempo real.',
+                'default': 'Entiendo tu consulta. DriveMetrics te ayuda a maximizar tus ganancias como conductor. ¿Te gustaría saber más sobre alguna función específica?'
+            };
+
+            const lowerMessage = userMessage.toLowerCase();
+            
+            if (lowerMessage.includes('predictor')) return responses.predictor;
+            if (lowerMessage.includes('mapa') || lowerMessage.includes('calor')) return responses['mapa de calor'];
+            if (lowerMessage.includes('alerta')) return responses.alertas;
+            
+            return responses.default;
+        }
+
+        // Enviar mensaje con Enter
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('assistantModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAssistantModal();
+            }
         });
     </script>
 
